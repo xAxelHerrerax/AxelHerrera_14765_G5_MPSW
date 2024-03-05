@@ -1,14 +1,9 @@
 package ec.edu.espe.deinglogin.view;
 
-import com.mongodb.client.MongoCollection;
 import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import ec.edu.espe.deinglogin.utils.ValidationUtil;
 import java.awt.HeadlessException;
-import javax.swing.JOptionPane;
-import org.bson.Document;
-import java.awt.HeadlessException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;

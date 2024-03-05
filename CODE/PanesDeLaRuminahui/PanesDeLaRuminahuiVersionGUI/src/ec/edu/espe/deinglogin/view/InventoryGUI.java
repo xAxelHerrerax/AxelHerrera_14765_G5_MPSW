@@ -1,15 +1,7 @@
 package ec.edu.espe.deinglogin.view;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
-import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
-import java.awt.HeadlessException;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import org.bson.Document;
 import java.awt.HeadlessException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,7 +20,7 @@ public class InventoryGUI extends javax.swing.JFrame {
     /*private JTable tbInventory;
     
      */
-    private final String url = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
+    private final String url = "jdbc:sqlite:database/database.db";
     public InventoryGUI() {
         initComponents();
         loadInventoryData();
@@ -46,7 +38,7 @@ public class InventoryGUI extends javax.swing.JFrame {
              ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
-                int id = rs.getInt("Id");
+                String id = rs.getString("Id");
                 String nombre = rs.getString("Name");
                 int cantidad = rs.getInt("Ammount");
                 float precio = rs.getFloat("Price");
@@ -147,6 +139,8 @@ public class InventoryGUI extends javax.swing.JFrame {
 
         jScrollPane2.setViewportView(jScrollPane1);
 
+        jPanel1.setBackground(new java.awt.Color(255, 153, 153));
+
         btnCancel.setText("Regresar");
         btnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -211,7 +205,7 @@ public class InventoryGUI extends javax.swing.JFrame {
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(41, Short.MAX_VALUE)
+                .addContainerGap(184, Short.MAX_VALUE)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 568, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(67, 67, 67))
         );

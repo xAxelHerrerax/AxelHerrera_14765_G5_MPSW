@@ -1,10 +1,5 @@
 package ec.edu.espe.deinglogin.view;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
-import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
-import org.bson.Document;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,7 +9,6 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-
 
 /**
  *
@@ -34,7 +28,7 @@ public class MachineryGUI extends javax.swing.JFrame {
 
     private void connectToSQLite() {
         try {
-            String url = "jdbc:sqlite:D:/DIEGO/Documents/SOFTWARE/MOD DESARROLLO SOFTWARE/u2/proyecto/PanesDeLaRuminahuiVersionGUI3/PanesDeLaRuminahuiVersionGUI/database/database.db";
+            String url = "jdbc:sqlite:database/database.db";
             connection = DriverManager.getConnection(url);
             System.out.println("Conexión a SQLite establecida.");
         } catch (SQLException e) {

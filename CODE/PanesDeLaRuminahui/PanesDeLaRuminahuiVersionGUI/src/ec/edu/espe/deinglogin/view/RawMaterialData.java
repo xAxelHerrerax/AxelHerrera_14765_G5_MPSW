@@ -1,11 +1,6 @@
 package ec.edu.espe.deinglogin.view;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
-import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import ec.edu.espe.deinglogin.utils.ValidationUtil;
-import java.awt.HeadlessException;
-import org.bson.Document;
 import java.awt.HeadlessException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,12 +10,12 @@ import javax.swing.JOptionPane;
 
 /**
  *
- * 
+ *
  */
 public class RawMaterialData extends javax.swing.JFrame {
 
     RawMaterialGUI rawMaterialGUI;
-    private Connection connection;
+    private String url = "jdbc:sqlite:database/database.db";
 
     public void setRawMaterialGUI(RawMaterialGUI rawMaterialGUI) {
         this.rawMaterialGUI = rawMaterialGUI;
@@ -40,28 +35,28 @@ public class RawMaterialData extends javax.swing.JFrame {
         txtAmount.setText("");
         txtPrice.setText("");
     }
-    private boolean validateFields(ValidationUtil validationUtil) {
-    boolean validate = true;
 
-    if (!validationUtil.validateBarcode(txtId.getText())) {
-        validate = false;
-        JOptionPane.showMessageDialog(null, "Ingrese correctamente el código de barras o un número positivo para el id");
-    } else if (!validationUtil.validateIdNotExist(txtId.getText())) {
+    private boolean validateFields(ValidationUtil validationUtil) {
+        boolean validate = true;
+
+        if (!validationUtil.validateBarcode(txtId.getText())) {
+            validate = false;
+            JOptionPane.showMessageDialog(null, "Ingrese correctamente el código de barras o un número positivo para el id");
+        } else if (validationUtil.validateIdNotExist(txtId.getText())) {
             validate = false;
             JOptionPane.showMessageDialog(null, "El ID ya existe en la base de datos. Ingrese un ID único.");
-    } 
-    else if (!validationUtil.ValidateLetterStringWithSpaces(txtName.getText())) {
-        validate = false;
-        JOptionPane.showMessageDialog(null, "Ingrese solo letras para el nombre");
-    } else if (!validationUtil.validateInt(txtAmount.getText())) {
-        validate = false;
-        JOptionPane.showMessageDialog(null, "Ingrese un número positivo para la cantidad");
-    } else if (!validationUtil.validateFloat(txtPrice.getText())) {
-        validate = false;
-        JOptionPane.showMessageDialog(null, "Ingrese un número positivo para el precio");
+        } else if (!validationUtil.ValidateLetterStringWithSpaces(txtName.getText())) {
+            validate = false;
+            JOptionPane.showMessageDialog(null, "Ingrese solo letras para el nombre");
+        } else if (!validationUtil.validateInt(txtAmount.getText())) {
+            validate = false;
+            JOptionPane.showMessageDialog(null, "Ingrese un número positivo para la cantidad");
+        } else if (!validationUtil.validateFloat(txtPrice.getText())) {
+            validate = false;
+            JOptionPane.showMessageDialog(null, "Ingrese un número positivo para el precio");
+        }
+        return validate;
     }
-    return validate;
-}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -80,18 +75,23 @@ public class RawMaterialData extends javax.swing.JFrame {
         txtName = new javax.swing.JTextField();
         txtAmount = new javax.swing.JTextField();
         txtPrice = new javax.swing.JTextField();
-        btnBack = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
         btnAdd = new javax.swing.JButton();
+        btnBack = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setText("Id:");
+        jLabel1.setText("CÓDIGO DE BARRAS:");
 
-        jLabel2.setText("Nombre:");
+        jLabel2.setText("NOMBRE:");
 
-        jLabel3.setText("Cantidad:");
+        jLabel3.setText("CANTIDAD:");
 
-        jLabel4.setText("Precio:");
+        jLabel4.setText("PRECIO:");
 
         txtId.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -117,12 +117,7 @@ public class RawMaterialData extends javax.swing.JFrame {
             }
         });
 
-        btnBack.setText("Regresar");
-        btnBack.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBackActionPerformed(evt);
-            }
-        });
+        jPanel1.setBackground(new java.awt.Color(214, 238, 169));
 
         btnAdd.setText("Agregar");
         btnAdd.addActionListener(new java.awt.event.ActionListener() {
@@ -131,41 +126,100 @@ public class RawMaterialData extends javax.swing.JFrame {
             }
         });
 
+        btnBack.setText("Regresar");
+        btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBackActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setFont(new java.awt.Font("ItalicC", 0, 18)); // NOI18N
+        jLabel5.setText("INGRESO");
+
+        jLabel6.setFont(new java.awt.Font("ItalicC", 0, 18)); // NOI18N
+        jLabel6.setText("DE");
+
+        jLabel7.setFont(new java.awt.Font("ItalicC", 0, 18)); // NOI18N
+        jLabel7.setText("PRODUCTOS");
+
+        jLabel8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ec/edu/espe/deinglogin/view/anadir.png"))); // NOI18N
+        jLabel8.setText("    ");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(28, 28, 28)
+                .addComponent(btnBack)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
+                .addComponent(btnAdd)
+                .addGap(23, 23, 23))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel6))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(58, 58, 58))))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(65, 65, 65)
+                .addComponent(jLabel5)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel6)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel7)
+                .addGap(57, 57, 57)
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 64, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAdd)
+                    .addComponent(btnBack))
+                .addGap(48, 48, 48))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(48, 48, 48)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
                             .addComponent(jLabel2))
                         .addGap(23, 23, 23)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtName)
+                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel3)
                             .addComponent(jLabel4))
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtAmount)
-                            .addComponent(txtPrice))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(40, 40, 40)
-                .addComponent(btnBack)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 102, Short.MAX_VALUE)
-                .addComponent(btnAdd)
-                .addGap(40, 40, 40))
+                            .addComponent(txtAmount, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtPrice, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(33, 33, 33)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGap(11, 11, 11)
+                .addGap(137, 137, 137)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -181,11 +235,7 @@ public class RawMaterialData extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(txtPrice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnBack)
-                    .addComponent(btnAdd))
-                .addGap(45, 45, 45))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -198,7 +248,6 @@ public class RawMaterialData extends javax.swing.JFrame {
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         ValidationUtil validationUtil = new ValidationUtil();
-
         addRawMaterial(validationUtil);
     }//GEN-LAST:event_btnAddActionPerformed
 
@@ -209,7 +258,7 @@ public class RawMaterialData extends javax.swing.JFrame {
             int amount = Integer.parseInt(txtAmount.getText());
             float price = Float.parseFloat(txtPrice.getText());
 
-            try {
+            try (Connection connection = DriverManager.getConnection(url)){
                 String query = "INSERT INTO rawMaterial (Id, Name, Amount, Price) VALUES (?, ?, ?, ?)";
                 PreparedStatement statement = connection.prepareStatement(query);
                 statement.setString(1, id);
@@ -226,6 +275,7 @@ public class RawMaterialData extends javax.swing.JFrame {
                     emptyFiled();
                     rawMaterialGUI.loadRawMaterialData();
                 }
+                connection.close();
             } catch (SQLException e) {
                 System.out.println("Error al agregar material crudo a la base de datos SQLite: " + e.getMessage());
             }
@@ -290,6 +340,11 @@ public class RawMaterialData extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JTextField txtAmount;
     private javax.swing.JTextField txtId;
     private javax.swing.JTextField txtName;

@@ -1,13 +1,6 @@
 package ec.edu.espe.deinglogin.view;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import java.awt.print.PrinterException;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
-import org.bson.Document;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -21,7 +14,7 @@ import javax.swing.table.DefaultTableModel;
  
  */
 public class IncomeGUI extends javax.swing.JFrame {
-    private final String url = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
+    private final String url = "jdbc:sqlite:database/database.db";
     /**
      * Creates new form Budget
      */
@@ -38,7 +31,7 @@ public class IncomeGUI extends javax.swing.JFrame {
         model.addColumn("Precio");
 
         try (Connection conn = DriverManager.getConnection(url)) {
-            String query = "SELECT * FROM income";
+            String query = "SELECT * FROM Income";
             try (PreparedStatement pstmt = conn.prepareStatement(query)) {
                 ResultSet rs = pstmt.executeQuery();
                 while (rs.next()) {

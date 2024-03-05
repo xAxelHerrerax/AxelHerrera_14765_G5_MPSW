@@ -9,11 +9,11 @@ import java.util.Scanner;
 
 public class Login {
 
-    private static final String DB_URL = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
+    private static final String DB_URL = "jdbc:sqlite:database/database.db";
 
     public static void createDocument() {
         try (Connection conn = DriverManager.getConnection(DB_URL)) {
-            String sql = "INSERT INTO Login (username, password) VALUES (diego, diego)";
+            String sql = "INSERT INTO Login (username, password) VALUES (?, ?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 Scanner readData = new Scanner(System.in);
                 System.out.print("Username: ");

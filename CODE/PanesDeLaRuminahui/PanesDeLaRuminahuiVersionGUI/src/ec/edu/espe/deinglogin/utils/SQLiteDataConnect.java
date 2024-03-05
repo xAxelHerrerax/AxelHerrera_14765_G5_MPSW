@@ -11,7 +11,7 @@ public class SQLiteDataConnect {
     public SQLiteDataConnect() {
         try {
             // Establece la conexión con la base de datos SQLite
-            connection = DriverManager.getConnection("jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db");
+            connection = DriverManager.getConnection("jdbc:sqlite:database/database.db");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -23,7 +23,7 @@ public class SQLiteDataConnect {
 
     public void connect() {
         try {
-            String url = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
+            String url = "jdbc:sqlite:database/database.db";
             connection = DriverManager.getConnection(url);
             System.out.println("Connected to SQLite database");
         } catch (SQLException e) {
@@ -34,7 +34,7 @@ public class SQLiteDataConnect {
     public Connection connectr() {
     Connection connection = null;
     try {
-        String url = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
+        String url = "jdbc:sqlite:database/database.db";
         connection = DriverManager.getConnection(url);
         System.out.println("Connected to SQLite database");
     } catch (SQLException e) {

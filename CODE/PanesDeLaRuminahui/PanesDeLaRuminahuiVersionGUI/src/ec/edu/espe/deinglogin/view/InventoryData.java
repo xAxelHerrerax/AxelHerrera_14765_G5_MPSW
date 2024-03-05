@@ -1,11 +1,6 @@
 package ec.edu.espe.deinglogin.view;
 
-import com.mongodb.client.MongoCollection;
-import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
-import javax.swing.JOptionPane;
 import ec.edu.espe.deinglogin.utils.ValidationUtil;
-import java.awt.HeadlessException;
-import org.bson.Document;
 import java.awt.HeadlessException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,7 +15,7 @@ import javax.swing.JOptionPane;
 public class InventoryData extends javax.swing.JFrame {
 
     InventoryGUI inventoryGUI;
-    private final String url = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
+    private final String url = "jdbc:sqlite:database/database.db";
 
     public void setInventoryGUI(InventoryGUI inventoryGUI) {
         this.inventoryGUI = inventoryGUI;
@@ -91,12 +86,6 @@ public class InventoryData extends javax.swing.JFrame {
         jLabel3.setText("Cantidad:");
 
         jLabel4.setText("Precio:");
-
-        txtId.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtIdActionPerformed(evt);
-            }
-        });
 
         txtName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -223,7 +212,7 @@ public class InventoryData extends javax.swing.JFrame {
 
     private void AddInventory(ValidationUtil validationUtil) throws NumberFormatException, HeadlessException {
         if (validateFields(validationUtil)) {
-            int id = Integer.parseInt(txtId.getText());
+            String id = txtId.getText();
             String name = txtName.getText();
             int amount = Integer.parseInt(txtAmount.getText());
             float price = Float.parseFloat(txtPrice.getText());
@@ -231,7 +220,7 @@ public class InventoryData extends javax.swing.JFrame {
             try (Connection conn = DriverManager.getConnection(url)) {
                 String query = "INSERT INTO inventory (Id, Name, Ammount, Price) VALUES (?, ?, ?, ?)";
                 try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-                    pstmt.setInt(1, id);
+                    pstmt.setString(1, id);
                     pstmt.setString(2, name);
                     pstmt.setInt(3, amount);
                     pstmt.setFloat(4, price);
@@ -249,10 +238,6 @@ public class InventoryData extends javax.swing.JFrame {
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
     this.setVisible(false);
     }//GEN-LAST:event_btnCancelActionPerformed
-
-    private void txtIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtIdActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtIdActionPerformed
 
     /**
      * @param args the command line arguments

@@ -21,7 +21,7 @@ public class Manager {
     public Manager() {
         try {
             // Conexión a la base de datos SQLite (debe existir el archivo de la base de datos)
-            connection = DriverManager.getConnection("jdbc:sqlite:D:/DIEGO/Documents/SOFTWARE/MOD DESARROLLO SOFTWARE/u2/proyecto/PanesDeLaRuminahuiVersionGUI3/PanesDeLaRuminahuiVersionGUI/database/database.db");
+            connection = DriverManager.getConnection("jdbc:sqlite:database/database.db");
             System.out.println("Conexión a SQLite establecida.");
         } catch (SQLException e) {
             System.err.println("Error al conectar a la base de datos SQLite: " + e.getMessage());
@@ -36,9 +36,7 @@ public class Manager {
         try {
             for (int i = 0; i < sizeSaleList; i++) {
                 sale = saleList.get(i);
-
-                // Consulta para actualizar la cantidad en la tabla de productos
-                String updateQuery = "UPDATE Product SET Amount = Amount - ? WHERE Id = ?";
+                String updateQuery = "UPDATE rawMaterial SET Amount = Amount - ? WHERE Id = ?";
                 PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
                 updateStatement.setInt(1, sale.getAmount());
                 updateStatement.setString(2, sale.getId());
@@ -62,6 +60,7 @@ public class Manager {
     }
 
     public void incomeConnect(ArrayList<Sale> saleList, float finalPrice) {
+        
         try {
             String id;
             String name;
@@ -76,9 +75,7 @@ public class Manager {
                 name = sale.getNameProduct();
                 amount = sale.getAmount();
                 price = sale.getTotalPrice();
-
-                // Inserción de datos en la tabla Income
-                String insertQuery = "INSERT INTO Income (Id, Name, Amount, Price, FinalPrice, PurchaseDate) VALUES (?, ?, ?, ?, ?, ?)";
+                String insertQuery = "INSERT INTO Income (Id, Name, Ammount, Price, FinalPrice, Date) VALUES (?, ?, ?, ?, ?, ?)";
                 PreparedStatement insertStatement = connection.prepareStatement(insertQuery);
                 insertStatement.setString(1, id);
                 insertStatement.setString(2, name);
