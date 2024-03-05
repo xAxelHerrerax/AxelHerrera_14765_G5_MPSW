@@ -3,7 +3,7 @@ package ec.edu.espe.deinglogin.model;
 import java.util.Date;
 
 /**
- * @author Jilmar Calderon, Techware, DCCO-ESPE
+ * 
  * @author Diego Casignia, Techware, DCCO-ESPE
  */
 public class Employee {

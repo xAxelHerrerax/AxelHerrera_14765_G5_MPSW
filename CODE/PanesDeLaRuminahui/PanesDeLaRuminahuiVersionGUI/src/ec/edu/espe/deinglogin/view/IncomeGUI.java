@@ -12,7 +12,7 @@ import org.bson.Document;
 
 /**
  *
- * @author Gabriel Baez, Techware, DCCO-ESPE
+ 
  */
 public class IncomeGUI extends javax.swing.JFrame {
 

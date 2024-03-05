@@ -6,7 +6,7 @@ package ec.edu.espe.deinglogin.model;
  */
 public class Product {
 
-    private int id;
+    private String id;
     private String nameProduct;
     private float budgetProduct;
     private int stock;
@@ -18,18 +18,18 @@ public class Product {
                 + "\n\t\tStock:" + stock;
     }
 
-    public Product(int id, String nameProduct, float budgetproduct, int stock) {
+    public Product(String id, String nameProduct, float budgetproduct, int stock) {
         this.id = id;
         this.nameProduct = nameProduct;
         this.budgetProduct = budgetproduct;
         this.stock = stock;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

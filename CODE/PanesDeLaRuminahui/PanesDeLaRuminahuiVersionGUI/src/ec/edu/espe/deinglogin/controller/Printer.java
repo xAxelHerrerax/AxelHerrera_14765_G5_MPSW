@@ -6,7 +6,7 @@ import javax.swing.JTable;
 
 /**
  *
- * @author Jilmar Calderon, Techware, DCCO-ESPE
+ * 
  */
 public class Printer {
 

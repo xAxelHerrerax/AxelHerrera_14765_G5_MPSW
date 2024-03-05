@@ -13,7 +13,7 @@ import org.bson.Document;
 
 /**
  *
- * @author Gabriel Baez, Techware, DCCO-ESPE
+ * 
  */
 public class InventoryGUI extends javax.swing.JFrame {
 
@@ -65,6 +65,45 @@ public class InventoryGUI extends javax.swing.JFrame {
         }
         );
     }
+    public void loadRawMaterialData() {
+
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("ID");
+        model.addColumn("Nombre");
+        model.addColumn("Cantidad");
+        model.addColumn("Precio");
+
+        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
+        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+
+        FindIterable<Document> iterable = collection.find();
+        for (Document document : iterable) {
+            String id = document.getString("Id");
+            String nombre = document.getString("Name");
+            int cantidad = document.getInteger("Ammount");
+            float precio = document.getDouble("Price").floatValue();
+
+            model.addRow(new Object[]{id, nombre, cantidad, precio});
+        }
+
+        tbInventory.setModel(model);
+
+        tbInventory.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+
+            public void valueChanged(ListSelectionEvent event) {
+                if (!event.getValueIsAdjusting()) {
+                    int selectedRow = tbInventory.getSelectedRow();
+                    if (selectedRow != -1) {
+
+                        btnDelete.setEnabled(true);
+                    } else {
+
+                        btnDelete.setEnabled(false);
+                    }
+                }
+            }
+        });
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -83,7 +122,7 @@ public class InventoryGUI extends javax.swing.JFrame {
         btnCancel = new javax.swing.JButton();
         btnAdd = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
 
         jMenu1.setText("jMenu1");
 
@@ -114,8 +153,6 @@ public class InventoryGUI extends javax.swing.JFrame {
 
         jScrollPane2.setViewportView(jScrollPane1);
 
-        jPanel1.setBackground(new java.awt.Color(0, 153, 153));
-
         btnCancel.setText("Regresar");
         btnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -137,57 +174,61 @@ public class InventoryGUI extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("Editar");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(86, Short.MAX_VALUE)
+                .addGap(74, 74, 74)
                 .addComponent(btnCancel)
                 .addGap(91, 91, 91)
                 .addComponent(btnAdd)
-                .addGap(83, 83, 83)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton1)
+                .addGap(67, 67, 67)
                 .addComponent(btnDelete)
-                .addGap(67, 67, 67))
+                .addGap(59, 59, 59))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(16, 16, 16)
+                .addGap(15, 15, 15)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel)
                     .addComponent(btnAdd)
-                    .addComponent(btnDelete))
-                .addContainerGap(14, Short.MAX_VALUE))
+                    .addComponent(btnDelete)
+                    .addComponent(jButton1))
+                .addContainerGap(15, Short.MAX_VALUE))
         );
-
-        jLabel1.setText("TABLA DE PRODUCTOS");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(34, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 542, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(23, 23, 23))
             .addGroup(layout.createSequentialGroup()
-                .addGap(235, 235, 235)
-                .addComponent(jLabel1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(41, Short.MAX_VALUE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 568, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(67, 67, 67))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(18, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(18, 18, 18)
+                .addGap(24, 24, 24)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(46, 46, 46)
+                .addGap(18, 18, 18)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -208,6 +249,56 @@ public class InventoryGUI extends javax.swing.JFrame {
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
         Delete();
     }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+            // Obtener el índice de la fila seleccionada en la tabla
+    int selectedRow = tbInventory.getSelectedRow();
+    
+    // Verificar si se seleccionó una fila válida
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Selecciona una fila para editar.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Obtener el ID del objeto en la fila seleccionada
+    String id = (String) tbInventory.getValueAt(selectedRow, 0); // Suponiendo que el ID está en la primera columna
+    
+    // Obtener la cantidad actual
+    int cantidadActual = (int) tbInventory.getValueAt(selectedRow, 2); // Suponiendo que la cantidad está en la tercera columna
+    
+    // Permitir al usuario editar la cantidad
+    String nuevaCantidadStr = JOptionPane.showInputDialog(this, "Editar Cantidad:", cantidadActual);
+    
+    // Verificar si el usuario canceló la edición o no ingresó un nuevo valor
+    if (nuevaCantidadStr == null || nuevaCantidadStr.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Se canceló la edición o la cantidad está vacía.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
+        return;
+    }
+    
+    // Convertir la nueva cantidad a entero
+    int nuevaCantidad;
+    try {
+        nuevaCantidad = Integer.parseInt(nuevaCantidadStr);
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Cantidad no válida.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Actualizar los datos en la base de datos
+    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
+    MongoCollection<Document> collection = mongoDataConnect.getCollection();
+    
+    // Crear un documento con los nuevos valores
+    Document filter = new Document("Id", id);
+    Document update = new Document("$set", new Document("Ammount", nuevaCantidad));
+    
+    // Actualizar el documento en la colección
+    collection.updateOne(filter, update);
+    
+    // Actualizar la tabla con los nuevos datos
+    loadRawMaterialData();
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     private void Delete() throws HeadlessException {
         int selectedRow = tbInventory.getSelectedRow();
@@ -277,7 +368,7 @@ public class InventoryGUI extends javax.swing.JFrame {
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnDelete;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JButton jButton1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu5;

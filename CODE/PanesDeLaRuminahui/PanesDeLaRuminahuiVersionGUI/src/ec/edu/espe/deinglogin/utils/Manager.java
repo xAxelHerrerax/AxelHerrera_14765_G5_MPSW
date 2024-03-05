@@ -6,17 +6,15 @@ import javax.swing.JOptionPane;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import ec.edu.espe.deinglogin.model.Sale;
-import ec.edu.espe.deinglogin.view.LoginGUI;
-import ec.edu.espe.deinglogin.view.MainPage;
+import ec.edu.espe.deinglogin.controller.Encrypted;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.table.DefaultTableModel;
-import ec.edu.espe.deinglogin.controller.Encrypted;
 import java.util.List;
 
 /**
- *
+ * Clase para gestionar operaciones con la base de datos.
  * @author Jilmar Calderon, Techware, DCCO-ESPE
  */
 public class Manager {
@@ -25,7 +23,7 @@ public class Manager {
 
         Sale sale;
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("inventory");
+        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
         MongoCollection<Document> collection = mongoDataConnect.getCollection();
         
         int sizeSaleList = saleList.size();
@@ -43,7 +41,7 @@ public class Manager {
                 Bson update = new Document("$set", new Document("Ammount", amount));
                 collection.updateOne(usernameFilter, update);
             } else {
-                JOptionPane.showMessageDialog(null, "Producto no encontrado");
+                JOptionPane.showMessageDialog(null, "Producto no encontrado uwu");
             }
 
             rowsToRemove.add(i);
@@ -57,72 +55,87 @@ public class Manager {
         }
 
         tabList.setModel(model);
+        
 
     }
 
     public void incomeConnect(ArrayList<Sale> saleList, float finalPrice) {
+    Sale sale;
 
-        Sale sale;
+    MongoDataConnect mongoDataConnect = new MongoDataConnect("income");
+    MongoCollection<Document> collection = mongoDataConnect.getCollection();
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("income");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+    String id;
+    String name;
+    int amount;
+    float price;
 
-        int id;
-        String name;
-        int amount;
-        float price;
+    // Obtener la fecha actual
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    String fechaCompra = dateFormat.format(new Date());
 
-        for (int i = 0; i < saleList.size(); i++) {
+    for (int i = 0; i < saleList.size(); i++) {
+        sale = saleList.get(i);
 
-            sale = saleList.get(i);
+        id = sale.getId();
+        name = sale.getNameProduct();
+        amount = sale.getAmount();
+        price = sale.getTotalPrice();
 
-            id = sale.getId();
-            name = sale.getNameProduct();
-            amount = sale.getAmount();
-            price = sale.getTotalPrice();
+        // Crear el documento para la venta, incluyendo la fecha de compra
+        Document doc1 = new Document("Id", id)
+                            .append("Name", name)
+                            .append("Ammount", amount)
+                            .append("Price", price)
+                            .append("Final Price", finalPrice)
+                            .append("FechaCompra", fechaCompra); // Agregar la fecha de compra
 
-            Document doc1 = new Document("Id", id).append("Name", name).append("Ammount", amount).append("Price", price).append("Final Price", finalPrice);
-
-            collection.insertOne(doc1);
-        }
-
+        collection.insertOne(doc1);
     }
+}
+    
 
     public boolean loginConnect(String username, String password) {
 
-        boolean txtDelete = true;
+    boolean txtDelete = true;
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("login");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+    MongoDataConnect mongoDataConnect = new MongoDataConnect("login");
+    MongoCollection<Document> collection = mongoDataConnect.getCollection();
 
-        String cifrada = Encrypted.encryptPassword(password);
+    //String cifrada = Encrypted.encryptPassword(password);
 
-        Bson usernameFilter = Filters.eq("User", username);
-        Document userDocument = collection.find(usernameFilter).first();
+    Bson usernameFilter = Filters.eq("User", username);
+    Document userDocument = collection.find(usernameFilter).first();
 
-        if (userDocument != null) {
-            String storedPassword = userDocument.getString("Pasword");
-            if (storedPassword.equals(cifrada)) {
+    if (userDocument != null) {
+        String storedPassword = userDocument.getString("Pasword");
+        System.out.println(storedPassword);
+        System.out.println(storedPassword);
+        System.out.println(storedPassword);
+        System.out.println(storedPassword);
+        System.out.println(storedPassword);
+         //       System.out.println(cifrada);
+        if (storedPassword != null && storedPassword.equals(password)) {
+            Date fechaActual = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            String fechaTexto = sdf.format(fechaActual);
+            
+            // Añadir la fecha de entrada al documento
+            userDocument.append("Fecha de entrada:  ", fechaTexto);
 
-                Date fechaActual = new Date();
+            // Actualizar la información en la base de datos
+            Bson update = new Document("$set", new Document("Fecha de entrada", fechaTexto));
+            collection.updateOne(usernameFilter, update);
 
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-                String fechaTexto = sdf.format(fechaActual);
-
-                userDocument.append("Fecha de entrada:  ", fechaTexto);
-
-                collection.replaceOne(usernameFilter, userDocument);
-
-                txtDelete = false;
-
-            } else {
-                JOptionPane.showMessageDialog(null, "Contraseña/Usuario incorrecta ");
-
-            }
+            txtDelete = false;
         } else {
-            JOptionPane.showMessageDialog(null, "Usuario/Contraseña no encontrado ");
-
+            JOptionPane.showMessageDialog(null, "Contraseña/Usuario incorrecta");
+            txtDelete = true;
         }
-        return txtDelete;
+    } else {
+        JOptionPane.showMessageDialog(null, "Usuario/Contraseña no encontrado");
     }
+    return txtDelete;
+}
+    
 }

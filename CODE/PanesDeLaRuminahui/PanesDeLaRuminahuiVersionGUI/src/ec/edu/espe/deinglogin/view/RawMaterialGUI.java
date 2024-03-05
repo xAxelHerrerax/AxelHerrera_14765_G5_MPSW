@@ -1,9 +1,11 @@
 package ec.edu.espe.deinglogin.view;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -12,7 +14,7 @@ import org.bson.Document;
 
 /**
  *
- * @author Jilmar Calderon, Techware, DCCO-ESPE
+ * 
  */
 public class RawMaterialGUI extends javax.swing.JFrame {
 
@@ -37,7 +39,7 @@ public class RawMaterialGUI extends javax.swing.JFrame {
 
         FindIterable<Document> iterable = collection.find();
         for (Document document : iterable) {
-            int id = document.getInteger("Id");
+            String id = document.getString("Id");
             String nombre = document.getString("Name");
             int cantidad = document.getInteger("Ammount");
             float precio = document.getDouble("Price").floatValue();
@@ -81,10 +83,9 @@ public class RawMaterialGUI extends javax.swing.JFrame {
         btnBack = new javax.swing.JButton();
         btnAdd = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
+        jeditartxt = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        jPanel1.setBackground(new java.awt.Color(0, 153, 51));
 
         tbRawMaterial.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -120,13 +121,11 @@ public class RawMaterialGUI extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(30, 30, 30)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(40, Short.MAX_VALUE)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(30, Short.MAX_VALUE))
+                .addGap(20, 20, 20))
         );
-
-        jPanel2.setBackground(new java.awt.Color(204, 204, 204));
 
         btnBack.setText("Regresar");
         btnBack.addActionListener(new java.awt.event.ActionListener() {
@@ -149,6 +148,13 @@ public class RawMaterialGUI extends javax.swing.JFrame {
             }
         });
 
+        jeditartxt.setText("Editar");
+        jeditartxt.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jeditartxtActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -156,8 +162,10 @@ public class RawMaterialGUI extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(65, 65, 65)
                 .addComponent(btnBack)
-                .addGap(144, 144, 144)
+                .addGap(41, 41, 41)
                 .addComponent(btnAdd)
+                .addGap(66, 66, 66)
+                .addComponent(jeditartxt)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnDelete)
                 .addGap(74, 74, 74))
@@ -169,7 +177,8 @@ public class RawMaterialGUI extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnBack)
                     .addComponent(btnAdd)
-                    .addComponent(btnDelete))
+                    .addComponent(btnDelete)
+                    .addComponent(jeditartxt))
                 .addContainerGap(15, Short.MAX_VALUE))
         );
 
@@ -210,6 +219,14 @@ public class RawMaterialGUI extends javax.swing.JFrame {
 
     }//GEN-LAST:event_btnAddActionPerformed
 
+    public JButton getJeditartxt() {
+        return jeditartxt;
+    }
+
+    public void setJeditartxt(JButton jeditartxt) {
+        this.jeditartxt = jeditartxt;
+    }
+
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
 
         int selectedRow = tbRawMaterial.getSelectedRow();
@@ -217,7 +234,7 @@ public class RawMaterialGUI extends javax.swing.JFrame {
             int confirm = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas eliminar este dato?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
 
-                int id = (int) tbRawMaterial.getValueAt(selectedRow, 0);
+                String id = (String) tbRawMaterial.getValueAt(selectedRow, 0);
 
                 MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
                 MongoCollection<Document> collection = mongoDataConnect.getCollection();
@@ -231,6 +248,55 @@ public class RawMaterialGUI extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void jeditartxtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jeditartxtActionPerformed
+    // Obtener el índice de la fila seleccionada en la tabla
+    int selectedRow = tbRawMaterial.getSelectedRow();
+    
+    // Verificar si se seleccionó una fila válida
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(this, "Selecciona una fila para editar.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Obtener el ID del objeto en la fila seleccionada
+    String id = (String) tbRawMaterial.getValueAt(selectedRow, 0); // Suponiendo que el ID está en la primera columna
+    
+    // Obtener la cantidad actual
+    int cantidadActual = (int) tbRawMaterial.getValueAt(selectedRow, 2); // Suponiendo que la cantidad está en la tercera columna
+    
+    // Permitir al usuario editar la cantidad
+    String nuevaCantidadStr = JOptionPane.showInputDialog(this, "Editar Cantidad:", cantidadActual);
+    
+    // Verificar si el usuario canceló la edición o no ingresó un nuevo valor
+    if (nuevaCantidadStr == null || nuevaCantidadStr.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Se canceló la edición o la cantidad está vacía.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
+        return;
+    }
+    
+    // Convertir la nueva cantidad a entero
+    int nuevaCantidad;
+    try {
+        nuevaCantidad = Integer.parseInt(nuevaCantidadStr);
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Cantidad no válida.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+    
+    // Actualizar los datos en la base de datos
+    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
+    MongoCollection<Document> collection = mongoDataConnect.getCollection();
+    
+    // Crear un documento con los nuevos valores
+    Document filter = new Document("Id", id);
+    Document update = new Document("$set", new Document("Ammount", nuevaCantidad));
+    
+    // Actualizar el documento en la colección
+    collection.updateOne(filter, update);
+    
+    // Actualizar la tabla con los nuevos datos
+    loadRawMaterialData();
+    }//GEN-LAST:event_jeditartxtActionPerformed
 
     /**
      * @param args the command line arguments
@@ -275,6 +341,7 @@ public class RawMaterialGUI extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JButton jeditartxt;
     private javax.swing.JTable tbRawMaterial;
     // End of variables declaration//GEN-END:variables
 }

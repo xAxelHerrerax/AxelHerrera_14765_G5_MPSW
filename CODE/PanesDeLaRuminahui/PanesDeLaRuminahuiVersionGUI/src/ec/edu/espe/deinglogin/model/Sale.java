@@ -6,13 +6,13 @@ package ec.edu.espe.deinglogin.model;
  */
 public class Sale {
 
-    private int id;
+    private String id;
     private String nameProduct;
     private int amount;
     private float unitPrice;
     private float totalPrice;
 
-    public Sale(int id, String nameProduct, int amount, float unitPrice, float totalPrice) {
+    public Sale(String id, String nameProduct, int amount, float unitPrice, float totalPrice) {
         this.id = id;
         this.nameProduct = nameProduct;
         this.amount = amount;
@@ -20,11 +20,11 @@ public class Sale {
         this.totalPrice = totalPrice;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

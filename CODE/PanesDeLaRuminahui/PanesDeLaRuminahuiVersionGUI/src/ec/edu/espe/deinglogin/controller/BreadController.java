@@ -5,7 +5,7 @@ import ec.edu.espe.deinglogin.model.BreadFactory;
 
 /**
  *
- * @author Gabriel Baez, Techware, DCCO-ESPE
+ * 
  */
 public class BreadController {
     private BreadFactory breadFactory;

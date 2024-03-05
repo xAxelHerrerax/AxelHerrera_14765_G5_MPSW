@@ -1,5 +1,6 @@
 package ec.edu.espe.deinglogin.utils;
 
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -21,7 +22,7 @@ public class MongoDataConnect {
     }
 
     private void connect(String collections) {
-        String uri = "mongodb+srv://dacasignia:dacasignia@panesdelaruminahui.ms8kwkp.mongodb.net/?retryWrites=true&w=majority";
+        String uri = "mongodb+srv://AxelH:panaderia2024@cluster0.0xpbdx0.mongodb.net/?retryWrites=true&w=majority";
         try {
             mongoClient = MongoClients.create(uri);
             database = mongoClient.getDatabase("PanesDeLaRuminahui");

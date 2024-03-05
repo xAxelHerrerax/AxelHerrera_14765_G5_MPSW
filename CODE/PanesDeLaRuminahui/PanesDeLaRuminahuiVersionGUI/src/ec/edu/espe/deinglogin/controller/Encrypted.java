@@ -2,7 +2,7 @@ package ec.edu.espe.deinglogin.controller;
 
 /**
  *
- * @author Gabriel Baez, Techware, DCCO-ESPE
+ * 
  */
 public class Encrypted {
 

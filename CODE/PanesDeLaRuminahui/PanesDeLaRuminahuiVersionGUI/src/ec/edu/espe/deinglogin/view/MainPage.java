@@ -1,5 +1,7 @@
 package ec.edu.espe.deinglogin.view;
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import ec.edu.espe.deinglogin.model.Product;
 import ec.edu.espe.deinglogin.model.Sale;
 import java.awt.Color;
@@ -17,6 +19,7 @@ import org.bson.conversions.Bson;
 import java.util.*;
 import ec.edu.espe.deinglogin.utils.ValidationUtil;
 import java.awt.HeadlessException;
+
 
 /**
  *
@@ -39,10 +42,56 @@ public class MainPage extends javax.swing.JFrame {
         getContentPane().setBackground(Color.white);
         initAllPanel();
         addTable();
+        loadRawMaterialData();
         loadInventoryGUI();
+        txtId.setEditable(false);
+
+    }
+    
+    public void loadRawMaterialData() {
+    DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+
+    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
+    MongoCollection<Document> collection = mongoDataConnect.getCollection();
+
+    FindIterable<Document> iterable = collection.find();
+     for (Document document : iterable) {
+        String id = document.getString("Id");
+        String nombre = document.getString("Name");
+
+        // Agregar el ID y el Nombre al modelo del JComboBox
+        model.addElement(nombre);
     }
 
+    // Establecer el modelo del JComboBox
+    comboBoxRawMaterial.setModel(model);
+
+    // Agregar un listener si es necesario
+    comboBoxRawMaterial.addActionListener(e -> {
+        // Acciones al seleccionar un elemento del JComboBox
+        // Puedes obtener el elemento seleccionado con comboBoxRawMaterial.getSelectedItem()
+        String selectedName = (String) comboBoxRawMaterial.getSelectedItem();
+
+        // Buscar el ID correspondiente en la base de datos
+        String correspondingId = getCorrespondingId(selectedName);
+        
+        // Mostrar el ID en el txtId
+        txtId.setText(correspondingId);
+    });
+}
+
+    private String getCorrespondingId(String selectedName) {
+    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
+    MongoCollection<Document> collection = mongoDataConnect.getCollection();
+
+    Document document = collection.find(Filters.eq("Name", selectedName)).first();
     
+    if (document != null) {
+        return document.getString("Id");
+    } else {
+        return "";
+    }
+}
     
     public void loadInventoryGUI() {
 
@@ -51,12 +100,12 @@ public class MainPage extends javax.swing.JFrame {
         model.addColumn("Producto");
         model.addColumn("Cantidad");
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("inventory");
+        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
         MongoCollection<Document> collection = mongoDataConnect.getCollection();
 
         FindIterable<Document> iterable = collection.find();
         for (Document document : iterable) {
-            int id = document.getInteger("Id");
+            String id = document.getString("Id");
             String nombre = document.getString("Name");
             int cantidad = document.getInteger("Ammount");
 
@@ -79,11 +128,7 @@ public class MainPage extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         txtId = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
         txtAmount = new javax.swing.JTextField();
-        txtUnitValue = new javax.swing.JTextField();
-        txtFullValue = new javax.swing.JTextField();
         bntNewProduct = new javax.swing.JButton();
         btnAddProduct = new javax.swing.JButton();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -91,6 +136,8 @@ public class MainPage extends javax.swing.JFrame {
         tbInventory = new javax.swing.JTable();
         jLabel7 = new javax.swing.JLabel();
         txtIVA = new javax.swing.JTextField();
+        comboBoxRawMaterial = new javax.swing.JComboBox<>();
+        jLabel8 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         btnFinishSale = new javax.swing.JButton();
@@ -142,12 +189,6 @@ public class MainPage extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jLabel2.setText("Cantidad");
 
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel3.setText("Valor por unidad");
-
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel4.setText("Valor Total");
-
         txtAmount.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         txtAmount.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -157,21 +198,6 @@ public class MainPage extends javax.swing.JFrame {
         txtAmount.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 txtAmountKeyPressed(evt);
-            }
-        });
-
-        txtUnitValue.setEditable(false);
-        txtUnitValue.setBackground(new java.awt.Color(255, 255, 255));
-        txtUnitValue.setFont(new java.awt.Font("Segoe UI", 0, 36)); // NOI18N
-        txtUnitValue.setRequestFocusEnabled(false);
-
-        txtFullValue.setEditable(false);
-        txtFullValue.setBackground(new java.awt.Color(255, 255, 255));
-        txtFullValue.setFont(new java.awt.Font("Segoe UI", 0, 36)); // NOI18N
-        txtFullValue.setRequestFocusEnabled(false);
-        txtFullValue.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtFullValueActionPerformed(evt);
             }
         });
 
@@ -212,7 +238,17 @@ public class MainPage extends javax.swing.JFrame {
 
         jScrollPane3.setViewportView(tblInventory);
 
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel7.setText("IVA");
+
+        comboBoxRawMaterial.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxRawMaterialActionPerformed(evt);
+            }
+        });
+
+        jLabel8.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel8.setText("Producto");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -222,17 +258,10 @@ public class MainPage extends javax.swing.JFrame {
                 .addGap(104, 104, 104)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(txtUnitValue, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 469, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2)
-                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(77, Short.MAX_VALUE))
+                        .addComponent(comboBoxRawMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(92, 92, 92))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(59, 59, 59)
                         .addComponent(bntNewProduct)
@@ -240,40 +269,42 @@ public class MainPage extends javax.swing.JFrame {
                         .addComponent(btnAddProduct)
                         .addGap(116, 116, 116))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(txtFullValue, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 469, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2)
+                            .addComponent(txtAmount, javax.swing.GroupLayout.PREFERRED_SIZE, 198, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel8)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(txtIVA, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(36, 36, 36))
+                        .addComponent(jLabel1)
+                        .addGap(122, 122, 122))
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel7)
-                        .addGap(187, 187, 187))))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel7)
+                            .addComponent(txtIVA, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 377, Short.MAX_VALUE))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel8))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(comboBoxRawMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtAmount, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
+                .addGap(37, 37, 37)
+                .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtUnitValue, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtIVA)
-                    .addComponent(txtFullValue))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtIVA, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 119, Short.MAX_VALUE)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -367,7 +398,7 @@ public class MainPage extends javax.swing.JFrame {
         mnuInventory.setText("Inventario");
         mnuInventory.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
 
-        itmAddRawMaterial.setText("Ir al Invetario");
+        itmAddRawMaterial.setText("Inventario");
         itmAddRawMaterial.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 itmAddRawMaterialActionPerformed(evt);
@@ -383,7 +414,7 @@ public class MainPage extends javax.swing.JFrame {
         });
         mnuInventory.add(jMenuItem4);
 
-        jMenuItem5.setText("Materia Prima");
+        jMenuItem5.setText("Registro de productos");
         jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem5ActionPerformed(evt);
@@ -456,7 +487,7 @@ public class MainPage extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(16, 16, 16)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -492,10 +523,9 @@ public class MainPage extends javax.swing.JFrame {
 
             if (validationUtil.validateInt(txtId.getText())) {
 
-                int id = Integer.parseInt(txtId.getText());
+                String id = txtId.getText();
                 validateProduct(id);
-                txtAmount.requestFocus();
-                txtUnitValue.setText(String.valueOf(product.getBudgetProduct()));
+                
             } else {
                 JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para el Id");
                 txtId.setText("");
@@ -505,8 +535,8 @@ public class MainPage extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_txtIdKeyPressed
 
-    private void validateProduct(int id) {
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("inventory");
+    private void validateProduct(String id) {
+        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
         MongoCollection<Document> collection = mongoDataConnect.getCollection();
 
         Bson usernameFilter = Filters.eq("Id", id);
@@ -520,7 +550,7 @@ public class MainPage extends javax.swing.JFrame {
             System.out.println(stock);
             product = new Product(id, nameProduct, budgetProduct, stock);
         } else {
-            JOptionPane.showMessageDialog(null, "Producto no encontrado");
+            JOptionPane.showMessageDialog(null, "Producto no encontrado ");
         }
 
     }
@@ -531,86 +561,53 @@ public class MainPage extends javax.swing.JFrame {
 
     private void addProductAction() throws NumberFormatException, HeadlessException {
 
-        ValidationUtil validationUtil = new ValidationUtil();
+    ValidationUtil validationUtil = new ValidationUtil();
 
-        boolean validate = true;
+    boolean validate = true;
+    int amount = 0;
+    float totalPrice = 0;
+    float priceIVA = 0;
 
-        int id = 0;
-        int amount = 0;
-        float totalPrice = 0;
-        float priceIVA = 0;
+    if (validationUtil.validateBarcode(txtId.getText())) {
+        btnAddProduct.requestFocus();
+        String id = txtId.getText();
+        validateProduct(id);
+        txtAmount.requestFocus();
 
-        if (validationUtil.validateInt(txtId.getText())) {
-            btnAddProduct.requestFocus();
-            id = Integer.parseInt(txtId.getText());
-            validateProduct(id);
-            txtAmount.requestFocus();
+        if (validationUtil.validateInt(txtAmount.getText())) {
 
-            if (validationUtil.validateInt(txtAmount.getText())) {
+            amount = Integer.parseInt(txtAmount.getText());
 
-                amount = Integer.parseInt(txtAmount.getText());
-                txtFullValue.setText(String.valueOf(product.getBudgetProduct() * amount));
+            // Validar que la cantidad no supere la existente
+            if (amount > product.getStock()) {
+                JOptionPane.showMessageDialog(null, "La cantidad ingresada supera la cantidad existente del producto.");
+                validate = false;
+            } else {
+               // txtFullValue.setText(String.valueOf(product.getBudgetProduct() * amount));
                 totalPrice = product.getBudgetProduct() * amount;
                 priceIVA = totalPrice * iva + totalPrice;
-
-            } else {
-                JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para la Cantidad");
-                validate = false;
-                txtAmount.setText("");
-                txtAmount.requestFocus();
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para el Id");
-            txtId.setText("");
-            txtId.requestFocus();
+            JOptionPane.showMessageDialog(null, "Ingrese un número positivo para la Cantidad");
             validate = false;
+            txtAmount.setText("");
+            txtAmount.requestFocus();
         }
-
-        if (validate) {
-
-            sale = new Sale(product.getId(), product.getNameProduct(), amount, product.getBudgetProduct(), totalPrice);
-            saleList.add(sale);
-            addProductToList();
-            initPanelProduct();
-        }
+    } else {
+        JOptionPane.showMessageDialog(null, "Ingrese un número positivo para el Id");
+        txtId.setText("");
+        txtId.requestFocus();
+        validate = false;
     }
 
-    private void txtAmountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAmountKeyPressed
-        ValidationUtil validationUtil = new ValidationUtil();
+    if (validate) {
+        sale = new Sale(product.getId(), product.getNameProduct(), amount, product.getBudgetProduct(), totalPrice);
+        saleList.add(sale);
+        addProductToList();
+        initPanelProduct();
+    }
+}
 
-        int amount = 0;
-        float totalPrice = 0;
-        float priceIVA = 0;
-
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-
-            if (validationUtil.validateInt(txtId.getText())) {
-                btnAddProduct.requestFocus();
-                int id = Integer.parseInt(txtId.getText());
-                validateProduct(id);
-                txtAmount.requestFocus();
-                txtUnitValue.setText(String.valueOf(product.getBudgetProduct()));
-                txtIVA.setText(String.valueOf(iva * 100));
-                amount = Integer.parseInt(txtAmount.getText());
-                totalPrice = product.getBudgetProduct() * amount;
-                priceIVA = totalPrice * iva + totalPrice;
-            } else {
-                JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para el Id");
-                txtId.setText("");
-                txtId.requestFocus();
-            }
-            if (validationUtil.validateInt(txtAmount.getText())) {
-
-                amount = Integer.parseInt(txtAmount.getText());
-                txtFullValue.setText(String.valueOf(product.getBudgetProduct() * amount));
-            } else {
-                JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para la Cantidad");
-                txtAmount.setText("");
-                txtAmount.requestFocus();
-            }
-            btnAddProduct.requestFocus();
-        }
-    }//GEN-LAST:event_txtAmountKeyPressed
 
     private void btnNewSaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNewSaleActionPerformed
         DefaultTableModel newModel = new DefaultTableModel();
@@ -654,10 +651,38 @@ public class MainPage extends javax.swing.JFrame {
         loginGUI.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+private String showUserTypeDialog() {
+        String[] options = {"Administrador", "Control de existencias"};
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Seleccione el tipo de usuario:",
+                "Tipo de Usuario",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
 
+        if (choice == JOptionPane.CLOSED_OPTION) {
+            return null;
+        } else {
+            String selectedOption = options[choice];
+            if (selectedOption.equals("Control de existencias")) {
+                ExpensesGUIForUser expensesGUIForUser = new ExpensesGUIForUser();
+                expensesGUIForUser.setVisible(true);
+                this.setVisible(false);
+            }
+            if (selectedOption.equals("Administrador")) {
+                MainPage mainPage = new MainPage();
+                mainPage.setVisible(true);
+                this.setVisible(false);
+            }
+            return selectedOption;
+        }
+    }
     private void itmAddRawMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmAddRawMaterialActionPerformed
-        InventoryGUI inventoryGUI = new InventoryGUI();
-        inventoryGUI.setVisible(true);
+        showUserTypeDialog();
         this.setVisible(false);
     }//GEN-LAST:event_itmAddRawMaterialActionPerformed
 
@@ -693,15 +718,52 @@ public class MainPage extends javax.swing.JFrame {
         this.setVisible(false);
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
-    private void txtFullValueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFullValueActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtFullValueActionPerformed
-
     private void itmFrmBreadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmFrmBreadActionPerformed
         FrmBread frmBread = new FrmBread();
         frmBread.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_itmFrmBreadActionPerformed
+
+    private void comboBoxRawMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxRawMaterialActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_comboBoxRawMaterialActionPerformed
+
+    private void txtAmountKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAmountKeyPressed
+        ValidationUtil validationUtil = new ValidationUtil();
+
+        int amount = 0;
+        float totalPrice = 0;
+        float priceIVA = 0;
+
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+
+            if (validationUtil.validateBarcode(txtId.getText())) {
+                btnAddProduct.requestFocus();
+                String id = txtId.getText();
+                validateProduct(id);
+                txtAmount.requestFocus();
+                //txtUnitValue.setText(String.valueOf(product.getBudgetProduct()));
+                txtIVA.setText(String.valueOf(iva * 100));
+                amount = Integer.parseInt(txtAmount.getText());
+                totalPrice = product.getBudgetProduct() * amount;
+                priceIVA = totalPrice * iva + totalPrice;
+            } else {
+                JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para el Id");
+                txtId.setText("");
+                txtId.requestFocus();
+            }
+            if (validationUtil.validateInt(txtAmount.getText())) {
+
+                amount = Integer.parseInt(txtAmount.getText());
+                //txtFullValue.setText(String.valueOf(product.getBudgetProduct() * amount));
+            } else {
+                JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para la Cantidad");
+                txtAmount.setText("");
+                txtAmount.requestFocus();
+            }
+            btnAddProduct.requestFocus();
+        }
+    }//GEN-LAST:event_txtAmountKeyPressed
 
     private void txtAmountActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtAmountActionPerformed
         // TODO add your handling code here:
@@ -723,8 +785,8 @@ public class MainPage extends javax.swing.JFrame {
     private void initPanelProduct() {
         txtId.setText("");
         txtAmount.setText("");
-        txtUnitValue.setText("0.0");
-        txtFullValue.setText("0.0");
+        //txtUnitValue.setText("0.0");
+        //txtFullValue.setText("0.0");
         txtId.requestFocus();
     }
 
@@ -734,6 +796,7 @@ public class MainPage extends javax.swing.JFrame {
         model.addColumn("Cantidad");
         model.addColumn("Precio Unitario");
         model.addColumn("Precio Total");
+        loadRawMaterialData();
     }
 
     /**
@@ -777,15 +840,15 @@ public class MainPage extends javax.swing.JFrame {
     private javax.swing.JButton btnAddProduct;
     private javax.swing.JButton btnFinishSale;
     private javax.swing.JButton btnNewSale;
+    private javax.swing.JComboBox<String> comboBoxRawMaterial;
     private javax.swing.JMenuItem itmAddRawMaterial;
     private javax.swing.JMenuItem itmFrmBread;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
@@ -806,9 +869,7 @@ public class MainPage extends javax.swing.JFrame {
     private javax.swing.JScrollPane tblInventory;
     private javax.swing.JTextField txtAmount;
     private javax.swing.JTextField txtFinalPrice;
-    private javax.swing.JTextField txtFullValue;
     private javax.swing.JTextField txtIVA;
     private javax.swing.JTextField txtId;
-    private javax.swing.JTextField txtUnitValue;
     // End of variables declaration//GEN-END:variables
 }
