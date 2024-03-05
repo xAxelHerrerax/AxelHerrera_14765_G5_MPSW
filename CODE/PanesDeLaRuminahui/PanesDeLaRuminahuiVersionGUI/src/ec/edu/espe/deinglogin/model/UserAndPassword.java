@@ -16,7 +16,7 @@ public class UserAndPassword {
 
     @Override
     public String toString() {
-        return "UserAndPassword: " + "\nuser: " + user + "\npasword: " + pasword;
+        return "UserAndPassword: " + "\nuser: " + user + "\npassword: " + pasword;
     }
 
     public String getUser() {

@@ -2,20 +2,26 @@ package ec.edu.espe.deinglogin.view;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import java.awt.print.PrinterException;
-import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import org.bson.Document;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
  
  */
 public class IncomeGUI extends javax.swing.JFrame {
-
+    private final String url = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
     /**
      * Creates new form Budget
      */
@@ -25,42 +31,29 @@ public class IncomeGUI extends javax.swing.JFrame {
     }
 
     public void loadIncomeGUI() {
-
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("Id");
         model.addColumn("Producto");
         model.addColumn("Cantidad");
         model.addColumn("Precio");
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("income");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            int id = document.getInteger("Id");
-            String nombre = document.getString("Name");
-            int cantidad = document.getInteger("Ammount");
-            float precio = document.getDouble("Price").floatValue();
-
-            model.addRow(new Object[]{id, nombre, cantidad, precio});
-        }
-        tbIncome.setModel(model);
-
-        tbIncome.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent event) {
-                if (!event.getValueIsAdjusting()) {
-                    int selectedRow = tbIncome.getSelectedRow();
-                    if (selectedRow != -1) {
-
-                        btnReturn.setEnabled(true);
-                    } else {
-
-                        btnReturn.setEnabled(false);
-                    }
+        try (Connection conn = DriverManager.getConnection(url)) {
+            String query = "SELECT * FROM income";
+            try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+                ResultSet rs = pstmt.executeQuery();
+                while (rs.next()) {
+                    int id = rs.getInt("Id");
+                    String nombre = rs.getString("Name");
+                    int cantidad = rs.getInt("Ammount");
+                    float precio = rs.getFloat("Price");
+                    model.addRow(new Object[]{id, nombre, cantidad, precio});
                 }
             }
-        });
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
 
+        tbIncome.setModel(model);
     }
 
     /**

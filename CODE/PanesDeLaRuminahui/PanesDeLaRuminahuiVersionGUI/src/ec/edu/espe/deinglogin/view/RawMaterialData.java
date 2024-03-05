@@ -2,11 +2,16 @@ package ec.edu.espe.deinglogin.view;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import ec.edu.espe.deinglogin.utils.ValidationUtil;
 import java.awt.HeadlessException;
-import javax.swing.JOptionPane;
 import org.bson.Document;
+import java.awt.HeadlessException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -15,6 +20,7 @@ import org.bson.Document;
 public class RawMaterialData extends javax.swing.JFrame {
 
     RawMaterialGUI rawMaterialGUI;
+    private Connection connection;
 
     public void setRawMaterialGUI(RawMaterialGUI rawMaterialGUI) {
         this.rawMaterialGUI = rawMaterialGUI;
@@ -193,34 +199,37 @@ public class RawMaterialData extends javax.swing.JFrame {
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         ValidationUtil validationUtil = new ValidationUtil();
 
-        AddRawMaterial(validationUtil);
+        addRawMaterial(validationUtil);
     }//GEN-LAST:event_btnAddActionPerformed
 
-    private void AddRawMaterial(ValidationUtil validationUtil) throws HeadlessException {
-
+    private void addRawMaterial(ValidationUtil validationUtil) throws HeadlessException {
         if (validateFields(validationUtil)) {
             String id = txtId.getText();
             String name = txtName.getText();
             int amount = Integer.parseInt(txtAmount.getText());
             float price = Float.parseFloat(txtPrice.getText());
-            MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-            MongoCollection<Document> collection = mongoDataConnect.getCollection();
 
-            Document doc = new Document("Id", id)
-                    .append("Name", name)
-                    .append("Ammount", amount)
-                    .append("Price", price);
+            try {
+                String query = "INSERT INTO rawMaterial (Id, Name, Amount, Price) VALUES (?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, id);
+                statement.setString(2, name);
+                statement.setInt(3, amount);
+                statement.setFloat(4, price);
 
-            collection.insertOne(doc);
-            int option = JOptionPane.showConfirmDialog(this, "Guardar");
+                statement.executeUpdate();
 
-            if (option == 0) {
-                JOptionPane.showMessageDialog(rootPane, "Registrado con exito");
-                emptyFiled();
-                rawMaterialGUI.loadRawMaterialData();
+                int option = JOptionPane.showConfirmDialog(this, "Guardar");
+
+                if (option == 0) {
+                    JOptionPane.showMessageDialog(rootPane, "Registrado con éxito");
+                    emptyFiled();
+                    rawMaterialGUI.loadRawMaterialData();
+                }
+            } catch (SQLException e) {
+                System.out.println("Error al agregar material crudo a la base de datos SQLite: " + e.getMessage());
             }
         }
-
     }
 
     private void txtIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtIdActionPerformed

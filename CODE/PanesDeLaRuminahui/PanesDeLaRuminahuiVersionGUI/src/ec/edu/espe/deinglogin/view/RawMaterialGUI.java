@@ -4,13 +4,19 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import javax.swing.JButton;
+import org.bson.Document;
+import java.awt.HeadlessException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-import org.bson.Document;
 
 /**
  *
@@ -21,49 +27,49 @@ public class RawMaterialGUI extends javax.swing.JFrame {
     /**
      * Creates new form RawMaterialGUI
      */
+    private String url = "jdbc:sqlite:D:/DIEGO/Documents/SOFTWARE/MOD DESARROLLO SOFTWARE/u2/proyecto/PanesDeLaRuminahuiVersionGUI3/PanesDeLaRuminahuiVersionGUI/database/database.db";
     public RawMaterialGUI() {
         initComponents();
         loadRawMaterialData();
     }
 
     public void loadRawMaterialData() {
-
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("ID");
         model.addColumn("Nombre");
         model.addColumn("Cantidad");
         model.addColumn("Precio");
+        try (Connection connection = DriverManager.getConnection(url);
+                PreparedStatement statement = connection.prepareStatement("SELECT * FROM rawMaterial");
+            ResultSet resultSet = statement.executeQuery();
+                ){         
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+            while (resultSet.next()) {
+                String id = resultSet.getString("Id");
+                String nombre = resultSet.getString("Name");
+                int cantidad = resultSet.getInt("Amount");
+                float precio = resultSet.getFloat("Price");
 
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            String id = document.getString("Id");
-            String nombre = document.getString("Name");
-            int cantidad = document.getInteger("Ammount");
-            float precio = document.getDouble("Price").floatValue();
+                model.addRow(new Object[]{id, nombre, cantidad, precio});
+            }
 
-            model.addRow(new Object[]{id, nombre, cantidad, precio});
-        }
+            tbRawMaterial.setModel(model);
 
-        tbRawMaterial.setModel(model);
-
-        tbRawMaterial.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-            public void valueChanged(ListSelectionEvent event) {
-                if (!event.getValueIsAdjusting()) {
-                    int selectedRow = tbRawMaterial.getSelectedRow();
-                    if (selectedRow != -1) {
-
-                        btnDelete.setEnabled(true);
-                    } else {
-
-                        btnDelete.setEnabled(false);
+            tbRawMaterial.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+                public void valueChanged(ListSelectionEvent event) {
+                    if (!event.getValueIsAdjusting()) {
+                        int selectedRow = tbRawMaterial.getSelectedRow();
+                        if (selectedRow != -1) {
+                            btnDelete.setEnabled(true);
+                        } else {
+                            btnDelete.setEnabled(false);
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (SQLException e) {
+            System.out.println("Error al cargar datos desde la base de datos SQLite: " + e.getMessage());
+        }
     }
 
     /**
@@ -212,11 +218,9 @@ public class RawMaterialGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBackActionPerformed
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-
         RawMaterialData rawMaterialData = new RawMaterialData();
         rawMaterialData.setRawMaterialGUI(this);
         rawMaterialData.setVisible(true);
-
     }//GEN-LAST:event_btnAddActionPerformed
 
     public JButton getJeditartxt() {
@@ -228,74 +232,62 @@ public class RawMaterialGUI extends javax.swing.JFrame {
     }
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-
         int selectedRow = tbRawMaterial.getSelectedRow();
         if (selectedRow != -1) {
             int confirm = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas eliminar este dato?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
+                try (Connection connection = DriverManager.getConnection(url);
+                        PreparedStatement statement = connection.prepareStatement("DELETE FROM rawMaterial WHERE Id = ?")){
+                    String id = (String) tbRawMaterial.getValueAt(selectedRow, 0);
+                    
+                    statement.setString(1, id);
+                    statement.executeUpdate();
 
-                String id = (String) tbRawMaterial.getValueAt(selectedRow, 0);
+                    loadRawMaterialData();
 
-                MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-                MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-                collection.deleteOne(Filters.eq("Id", id));
-
-                loadRawMaterialData();
-
-                JOptionPane.showMessageDialog(this, " Dato eliminado correctamente ");
-
+                    JOptionPane.showMessageDialog(this, "Dato eliminado correctamente");
+                } catch (SQLException e) {
+                    System.out.println("Error al eliminar dato desde la base de datos SQLite: " + e.getMessage());
+                }
             }
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void jeditartxtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jeditartxtActionPerformed
-    // Obtener el índice de la fila seleccionada en la tabla
-    int selectedRow = tbRawMaterial.getSelectedRow();
-    
-    // Verificar si se seleccionó una fila válida
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Selecciona una fila para editar.", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-    
-    // Obtener el ID del objeto en la fila seleccionada
-    String id = (String) tbRawMaterial.getValueAt(selectedRow, 0); // Suponiendo que el ID está en la primera columna
-    
-    // Obtener la cantidad actual
-    int cantidadActual = (int) tbRawMaterial.getValueAt(selectedRow, 2); // Suponiendo que la cantidad está en la tercera columna
-    
-    // Permitir al usuario editar la cantidad
-    String nuevaCantidadStr = JOptionPane.showInputDialog(this, "Editar Cantidad:", cantidadActual);
-    
-    // Verificar si el usuario canceló la edición o no ingresó un nuevo valor
-    if (nuevaCantidadStr == null || nuevaCantidadStr.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Se canceló la edición o la cantidad está vacía.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
-        return;
-    }
-    
-    // Convertir la nueva cantidad a entero
-    int nuevaCantidad;
-    try {
-        nuevaCantidad = Integer.parseInt(nuevaCantidadStr);
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Cantidad no válida.", "Error", JOptionPane.ERROR_MESSAGE);
-        return;
-    }
-    
-    // Actualizar los datos en la base de datos
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
-    
-    // Crear un documento con los nuevos valores
-    Document filter = new Document("Id", id);
-    Document update = new Document("$set", new Document("Ammount", nuevaCantidad));
-    
-    // Actualizar el documento en la colección
-    collection.updateOne(filter, update);
-    
-    // Actualizar la tabla con los nuevos datos
-    loadRawMaterialData();
+        int selectedRow = tbRawMaterial.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una fila para editar.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String id = (String) tbRawMaterial.getValueAt(selectedRow, 0);
+        int cantidadActual = (int) tbRawMaterial.getValueAt(selectedRow, 2);
+        String nuevaCantidadStr = JOptionPane.showInputDialog(this, "Editar Cantidad:", cantidadActual);
+        
+        if (nuevaCantidadStr == null || nuevaCantidadStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Se canceló la edición o la cantidad está vacía.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        int nuevaCantidad;
+        try {
+            nuevaCantidad = Integer.parseInt(nuevaCantidadStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Cantidad no válida.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        try (Connection connection = DriverManager.getConnection(url);
+            PreparedStatement statement = connection.prepareStatement("UPDATE rawMaterial SET Amount = ? WHERE Id = ?")){
+            
+            statement.setInt(1, nuevaCantidad);
+            statement.setString(2, id);
+            statement.executeUpdate();
+
+            loadRawMaterialData();
+        } catch (SQLException e) {
+            System.out.println("Error al editar dato en la base de datos SQLite: " + e.getMessage());
+        }
     }//GEN-LAST:event_jeditartxtActionPerformed
 
     /**

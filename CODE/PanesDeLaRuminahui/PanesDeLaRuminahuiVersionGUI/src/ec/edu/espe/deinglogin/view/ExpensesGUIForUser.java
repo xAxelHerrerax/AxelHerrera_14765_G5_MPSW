@@ -4,7 +4,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import ec.edu.espe.deinglogin.controller.Printer;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.HashMap;
@@ -18,6 +18,12 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import org.bson.Document;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  *
@@ -41,44 +47,65 @@ public class ExpensesGUIForUser extends javax.swing.JFrame {
         this.jButtoninforme = jButtoninforme;
     }
     public void loadRawMaterialData() {
+    DefaultTableModel model = new DefaultTableModel();
+    model.addColumn("ID");
+    model.addColumn("Nombre");
+    model.addColumn("Cantidad");
+    model.addColumn("Precio");
 
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("ID");
-        model.addColumn("Nombre");
-        model.addColumn("Cantidad");
-        model.addColumn("Precio");
+    try {
+        SQLiteDataConnect sqliteDataConnect = new SQLiteDataConnect();
+        Connection connection = sqliteDataConnect.getConnection();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM rawMaterial");
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            String id = document.getString("Id");
-            String nombre = document.getString("Name");
-            int cantidad = document.getInteger("Ammount");
-            float precio = document.getDouble("Price").floatValue();
+        while (resultSet.next()) {
+            String id = resultSet.getString("Id");
+            String nombre = resultSet.getString("Name");
+            int cantidad = resultSet.getInt("Amount");
+            float precio = resultSet.getFloat("Price");
 
             model.addRow(new Object[]{id, nombre, cantidad, precio});
         }
 
         tbExpensive.setModel(model);
 
-        tbExpensive.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-            public void valueChanged(ListSelectionEvent event) {
-                if (!event.getValueIsAdjusting()) {
-                    int selectedRow = tbExpensive.getSelectedRow();
-                    if (selectedRow != -1) {
-
-                        btnDelete.setEnabled(true);
-                    } else {
-
-                        btnDelete.setEnabled(false);
-                    }
-                }
-            }
-        });
+        // Agrega el ListSelectionListener aquí si es necesario
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+}
+
+public void loadExpensesGUI() {
+    DefaultTableModel model = new DefaultTableModel();
+    model.addColumn("Id");
+    model.addColumn("Producto");
+    model.addColumn("Cantidad");
+    model.addColumn("Precio");
+
+    try {
+        SQLiteDataConnect sqliteDataConnect = new SQLiteDataConnect();
+        Connection connection = sqliteDataConnect.getConnection();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM rawMaterial");
+
+        while (resultSet.next()) {
+            String id = resultSet.getString("Id");
+            String nombre = resultSet.getString("Name");
+            int cantidad = resultSet.getInt("Amount");
+            float precio = resultSet.getFloat("Price");
+
+            model.addRow(new Object[]{id, nombre, cantidad, precio});
+        }
+
+        tbExpensive.setModel(model);
+
+        // Agrega el ListSelectionListener aquí si es necesario
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
 private String showUserTypeDialog() {
         String[] options = {"Administrador", "Control de existencias"};
         int choice = JOptionPane.showOptionDialog(
@@ -107,45 +134,6 @@ private String showUserTypeDialog() {
                 this.setVisible(false);
             }
             return selectedOption;
-        }
-    }
-
-    public void loadExpensesGUI() {
-
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("Id");
-        model.addColumn("Producto");
-        model.addColumn("Cantidad");
-        model.addColumn("Precio");
-
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            String id = document.getString("Id");
-            String nombre = document.getString("Name");
-            int cantidad = document.getInteger("Ammount");
-            float precio = document.getDouble("Price").floatValue();
-
-            model.addRow(new Object[]{id, nombre, cantidad, precio});
-
-            tbExpensive.setModel(model);
-
-            tbExpensive.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-                public void valueChanged(ListSelectionEvent event) {
-                    if (!event.getValueIsAdjusting()) {
-                        int selectedRow = tbExpensive.getSelectedRow();
-                        if (selectedRow != -1) {
-
-                            tbExpensive.setEnabled(true);
-                        } else {
-
-                            tbExpensive.setEnabled(false);
-                        }
-                    }
-                }
-            });
         }
     }
 
@@ -320,118 +308,124 @@ private String showUserTypeDialog() {
         printer.printTable(table);
     }
     private void btnPritActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPritActionPerformed
-        // Conectar a la base de datos y recuperar las ventas
-    // Conectar a la base de datos y recuperar las ventas
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("income"); // Suponiendo que "income" es el nombre de la colección de ventas
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
-    FindIterable<Document> iterable = collection.find();
-
-    // Construir la tabla con los datos de las ventas
-    DefaultTableModel model = new DefaultTableModel();
+        DefaultTableModel model = new DefaultTableModel();
     model.addColumn("ID");
     model.addColumn("Nombre");
     model.addColumn("Cantidad");
     model.addColumn("Precio");
     model.addColumn("Precio Final");
-    model.addColumn("Fecha de Compra"); // Agregar la columna para la fecha de compra
+    model.addColumn("Fecha de Compra");
 
-    // Iterar sobre las ventas
-    for (Document doc : iterable) {
-        String id = doc.getString("Id");
-        String nombre = doc.getString("Name");
-        int cantidad = doc.getInteger("Ammount");
-        float precio = doc.getDouble("Price").floatValue();
-        float precioFinal = doc.getDouble("Final Price").floatValue();
-        String fechaCompra = doc.getString("FechaCompra"); // Obtener la fecha de compra del documento
-        // Agregar la venta a la tabla
-        model.addRow(new Object[]{id, nombre, cantidad, precio, precioFinal, fechaCompra});
+    try {
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db");
+        PreparedStatement statement = connection.prepareStatement("SELECT * FROM ventas");
+        ResultSet resultSet = statement.executeQuery();
+
+        // Iterar sobre las ventas
+        while (resultSet.next()) {
+            String id = resultSet.getString("Id");
+            String nombre = resultSet.getString("Name");
+            int cantidad = resultSet.getInt("Ammount");
+            float precio = resultSet.getFloat("Price");
+            float precioFinal = resultSet.getFloat("FinalPrice");
+            String fechaCompra = resultSet.getString("FechaCompra");
+
+            // Agregar la venta a la tabla
+            model.addRow(new Object[]{id, nombre, cantidad, precio, precioFinal, fechaCompra});
+        }
+
+        // Crear la tabla con el modelo de datos
+        JTable table = new JTable(model);
+
+        // Presentar la tabla en un JOptionPane
+        JOptionPane.showMessageDialog(null, new JScrollPane(table), "Ventas Realizadas", JOptionPane.INFORMATION_MESSAGE);
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
-    // Crear la tabla con el modelo de datos
-    JTable table = new JTable(model);
-    // Presentar la tabla en un JOptionPane
-    JOptionPane.showMessageDialog(null, new JScrollPane(table), "Ventas Realizadas", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btnPritActionPerformed
 
     private void jButtoninformeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtoninformeActionPerformed
-      // Conectar a la base de datos y recuperar los productos
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial"); // Suponiendo que "productos" es el nombre de la colección
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
-    FindIterable<Document> iterable = collection.find();
-
-    // Construir la tabla con los datos de los productos
-    DefaultTableModel model = new DefaultTableModel();
+        DefaultTableModel model = new DefaultTableModel();
     model.addColumn("ID");
     model.addColumn("Nombre");
     model.addColumn("Cantidad");
     model.addColumn("Precio");
 
-    // Iterar sobre los productos
-    for (Document doc : iterable) {
-        String id = doc.getString("Id");
-        String nombre = doc.getString("Name");
-        int cantidad = doc.getInteger("Ammount");
-        float precio = doc.getDouble("Price").floatValue();
+    try {
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db");
+        PreparedStatement statement = connection.prepareStatement("SELECT * FROM rawMaterial");
+        ResultSet resultSet = statement.executeQuery();
 
-        // Agregar el producto a la tabla
-        model.addRow(new Object[]{id, nombre, cantidad, precio});
-    }
+        // Iterar sobre los productos
+        while (resultSet.next()) {
+            String id = resultSet.getString("Id");
+            String nombre = resultSet.getString("Name");
+            int cantidad = resultSet.getInt("Amount");
+            float precio = resultSet.getFloat("Price");
 
-    // Crear la tabla con el modelo de datos
-    JTable table = new JTable(model);
-
-    // Definir el renderizador de celdas para aplicar los colores
-    table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            int cantidad = (int) table.getValueAt(row, 2); // Obtener el valor de la cantidad en la tercera columna
-
-            // Resaltar en rojo los productos con cantidad cero
-            if (cantidad == 0) {
-                c.setBackground(Color.RED);
-            } else if (cantidad < 20) {
-                // Resaltar en amarillo los productos con menos de 20
-                c.setBackground(Color.YELLOW);
-            } else {
-                // Restablecer el color de fondo predeterminado para otros productos
-                c.setBackground(table.getBackground());
-            }
-
-            return c;
+            // Agregar el producto a la tabla
+            model.addRow(new Object[]{id, nombre, cantidad, precio});
         }
-    });
 
-    // Presentar la tabla en un JOptionPane
-    JOptionPane.showMessageDialog(null, new JScrollPane(table), "Informe de Productos", JOptionPane.INFORMATION_MESSAGE);
+        // Crear la tabla con el modelo de datos
+        JTable table = new JTable(model);
 
+        // Definir el renderizador de celdas para aplicar los colores
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                int cantidad = (int) table.getValueAt(row, 2); // Obtener el valor de la cantidad en la tercera columna
+
+                // Resaltar en rojo los productos con cantidad cero
+                if (cantidad == 0) {
+                    c.setBackground(Color.RED);
+                } else if (cantidad < 20) {
+                    // Resaltar en amarillo los productos con menos de 20
+                    c.setBackground(Color.YELLOW);
+                } else {
+                    // Restablecer el color de fondo predeterminado para otros productos
+                    c.setBackground(table.getBackground());
+                }
+
+                return c;
+            }
+        });
+
+        // Presentar la tabla en un JOptionPane
+        JOptionPane.showMessageDialog(null, new JScrollPane(table), "Informe de Productos", JOptionPane.INFORMATION_MESSAGE);
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
     }//GEN-LAST:event_jButtoninformeActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-                // Obtener el índice de la fila seleccionada en la tabla
+        // Obtener el índice de la fila seleccionada en la tabla
     int selectedRow = tbExpensive.getSelectedRow();
-    
+
     // Verificar si se seleccionó una fila válida
     if (selectedRow == -1) {
         JOptionPane.showMessageDialog(this, "Selecciona una fila para editar.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
-    
+
     // Obtener el ID del objeto en la fila seleccionada
     String id = (String) tbExpensive.getValueAt(selectedRow, 0); // Suponiendo que el ID está en la primera columna
-    
+
     // Obtener la cantidad actual
     int cantidadActual = (int) tbExpensive.getValueAt(selectedRow, 2); // Suponiendo que la cantidad está en la tercera columna
-    
+
     // Permitir al usuario editar la cantidad
     String nuevaCantidadStr = JOptionPane.showInputDialog(this, "Editar Cantidad:", cantidadActual);
-    
+
     // Verificar si el usuario canceló la edición o no ingresó un nuevo valor
     if (nuevaCantidadStr == null || nuevaCantidadStr.isEmpty()) {
         JOptionPane.showMessageDialog(this, "Se canceló la edición o la cantidad está vacía.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
         return;
     }
-    
+
     // Convertir la nueva cantidad a entero
     int nuevaCantidad;
     try {
@@ -440,106 +434,118 @@ private String showUserTypeDialog() {
         JOptionPane.showMessageDialog(this, "Cantidad no válida.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
-    
-    // Actualizar los datos en la base de datos
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
-    
-    // Crear un documento con los nuevos valores
-    Document filter = new Document("Id", id);
-    Document update = new Document("$set", new Document("Ammount", nuevaCantidad));
-    
-    // Actualizar el documento en la colección
-    collection.updateOne(filter, update);
-    
-    // Actualizar la tabla con los nuevos datos
-    loadRawMaterialData();
+
+    // Actualizar los datos en la base de datos SQLite
+    try {
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db");
+        PreparedStatement statement = connection.prepareStatement("UPDATE rawMaterial SET Amount = ? WHERE Id = ?");
+        statement.setInt(1, nuevaCantidad);
+        statement.setString(2, id);
+        statement.executeUpdate();
+
+        // Actualizar la tabla con los nuevos datos
+        loadRawMaterialData();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        // TODO add your handling code here:
-        
         int selectedRow = tbExpensive.getSelectedRow();
-        if (selectedRow != -1) {
-            int confirm = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas eliminar este dato?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
+    if (selectedRow != -1) {
+        int confirm = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas eliminar este dato?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            String id = (String) tbExpensive.getValueAt(selectedRow, 0);
 
-                String id = (String) tbExpensive.getValueAt(selectedRow, 0);
+            try {
+                Connection connection = DriverManager.getConnection("jdbc:sqlite:D:/DIEGO/Documents/SOFTWARE/MOD DESARROLLO SOFTWARE/u2/proyecto/PanesDeLaRuminahuiVersionGUI3/PanesDeLaRuminahuiVersionGUI/database/database.db");
+                PreparedStatement statement = connection.prepareStatement("DELETE FROM rawMaterial WHERE Id = ?");
+                statement.setString(1, id);
+                int rowsDeleted = statement.executeUpdate();
 
-                MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-                MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-                collection.deleteOne(Filters.eq("Id", id));
-
-                loadRawMaterialData();
-
-                JOptionPane.showMessageDialog(this, " Dato eliminado correctamente ");
-
+                if (rowsDeleted > 0) {
+                    JOptionPane.showMessageDialog(this, "Dato eliminado correctamente");
+                    loadRawMaterialData(); // Actualizar la tabla después de la eliminación
+                } else {
+                    JOptionPane.showMessageDialog(this, "No se pudo eliminar el dato", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
-
+    } else {
+        JOptionPane.showMessageDialog(this, "Selecciona una fila para eliminar.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("income"); // Suponiendo que "income" es la colección de ventas
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
-    FindIterable<Document> iterable = collection.find();
+        try {
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:D:/DIEGO/Documents/SOFTWARE/MOD DESARROLLO SOFTWARE/u2/proyecto/PanesDeLaRuminahuiVersionGUI3/PanesDeLaRuminahuiVersionGUI/database/database.db");
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM income");
 
-    // Mapa para almacenar la cantidad vendida y el monto total de ventas para cada producto
-    Map<String, Integer> cantidadPorProducto = new HashMap<>();
-    Map<String, Float> montoPorProducto = new HashMap<>();
+        // Mapas para almacenar la cantidad vendida y el monto total de ventas para cada producto
+        Map<String, Integer> cantidadPorProducto = new HashMap<>();
+        Map<String, Float> montoPorProducto = new HashMap<>();
 
-    // Iterar sobre las ventas para calcular la cantidad vendida y el monto total de ventas para cada producto
-    for (Document doc : iterable) {
-        String nombreProducto = doc.getString("Name");
-        int cantidadVenta = doc.getInteger("Ammount");
-        float montoVenta = doc.getDouble("Final Price").floatValue();
+        // Iterar sobre las ventas para calcular la cantidad vendida y el monto total de ventas para cada producto
+        while (resultSet.next()) {
+            String nombreProducto = resultSet.getString("Name");
+            int cantidadVenta = resultSet.getInt("Ammount");
+            float montoVenta = resultSet.getFloat("Price");
 
-        // Actualizar la cantidad vendida y el monto total de ventas para el producto
-        cantidadPorProducto.put(nombreProducto, cantidadPorProducto.getOrDefault(nombreProducto, 0) + cantidadVenta);
-        montoPorProducto.put(nombreProducto, montoPorProducto.getOrDefault(nombreProducto, 0f) + montoVenta);
-    }
-
-    // Construir la tabla con los productos vendidos y la cantidad total de ventas realizadas de cada producto
-    DefaultTableModel model = new DefaultTableModel();
-    model.addColumn("Producto");
-    model.addColumn("Cantidad Vendida");
-    model.addColumn("Monto Total Ventas");
-
-    // Calcular los productos más vendidos y los menos vendidos
-    String productoMasVendido = "";
-    int cantidadMasVendida = 0;
-    String productoMenosVendido = "";
-    int cantidadMenosVendida = Integer.MAX_VALUE;
-
-    for (Map.Entry<String, Integer> entry : cantidadPorProducto.entrySet()) {
-        String producto = entry.getKey();
-        int cantidadVendida = entry.getValue();
-        float montoVentas = montoPorProducto.get(producto);
-
-        // Agregar la fila a la tabla
-        model.addRow(new Object[]{producto, cantidadVendida, montoVentas});
-
-        // Actualizar el producto más vendido y el menos vendido
-        if (cantidadVendida > cantidadMasVendida) {
-            productoMasVendido = producto;
-            cantidadMasVendida = cantidadVendida;
+            // Actualizar la cantidad vendida y el monto total de ventas para el producto
+            cantidadPorProducto.put(nombreProducto, cantidadPorProducto.getOrDefault(nombreProducto, 0) + cantidadVenta);
+            montoPorProducto.put(nombreProducto, montoPorProducto.getOrDefault(nombreProducto, 0f) + montoVenta);
         }
-        if (cantidadVendida < cantidadMenosVendida) {
-            productoMenosVendido = producto;
-            cantidadMenosVendida = cantidadVendida;
+
+        // Construir la tabla con los productos vendidos y la cantidad total de ventas realizadas de cada producto
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("Producto");
+        model.addColumn("Cantidad Vendida");
+        model.addColumn("Monto Total Ventas");
+
+        // Calcular los productos más vendidos y los menos vendidos
+        String productoMasVendido = "";
+        int cantidadMasVendida = 0;
+        String productoMenosVendido = "";
+        int cantidadMenosVendida = Integer.MAX_VALUE;
+
+        for (Map.Entry<String, Integer> entry : cantidadPorProducto.entrySet()) {
+            String producto = entry.getKey();
+            int cantidadVendida = entry.getValue();
+            float montoVentas = montoPorProducto.get(producto);
+
+            // Agregar la fila a la tabla
+            model.addRow(new Object[]{producto, cantidadVendida, montoVentas});
+
+            // Actualizar el producto más vendido y el menos vendido
+            if (cantidadVendida > cantidadMasVendida) {
+                productoMasVendido = producto;
+                cantidadMasVendida = cantidadVendida;
+            }
+            if (cantidadVendida < cantidadMenosVendida) {
+                productoMenosVendido = producto;
+                cantidadMenosVendida = cantidadVendida;
+            }
         }
+
+        // Mostrar la tabla de productos vendidos
+        JTable table = new JTable(model);
+        JOptionPane.showMessageDialog(null, new JScrollPane(table), "Productos Vendidos", JOptionPane.INFORMATION_MESSAGE);
+
+        // Mostrar en un JLabel los productos más vendidos y los menos vendidos
+        String mensaje = "Productos más vendidos: " + productoMasVendido + " (Cantidad: " + cantidadMasVendida + ")\n";
+        mensaje += "Productos menos vendidos: " + productoMenosVendido + " (Cantidad: " + cantidadMenosVendida + ")";
+        jLabel1.setText(mensaje);
+
+        // Cerrar la conexión
+        resultSet.close();
+        statement.close();
+        connection.close();
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
-
-    // Mostrar la tabla de productos vendidos
-    JTable table = new JTable(model);
-    JOptionPane.showMessageDialog(null, new JScrollPane(table), "Productos Vendidos", JOptionPane.INFORMATION_MESSAGE);
-
-    // Mostrar en un JLabel los productos más vendidos y los menos vendidos
-    String mensaje = "Productos más vendidos: " + productoMasVendido + " (Cantidad: " + cantidadMasVendida + ")\n";
-    mensaje += "Productos menos vendidos: " + productoMenosVendido + " (Cantidad: " + cantidadMenosVendida + ")";
-    jLabel1.setText(mensaje);
     }//GEN-LAST:event_jButton3ActionPerformed
 
     /**

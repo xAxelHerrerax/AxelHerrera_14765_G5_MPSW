@@ -4,18 +4,30 @@ import com.mongodb.client.MongoCollection;
 import ec.edu.espe.deinglogin.controller.Encrypted;
 import ec.edu.espe.deinglogin.utils.Manager;
 import ec.edu.espe.deinglogin.model.UserAndPassword;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
-import ec.edu.espe.deinglogin.utils.ValidationUtil;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import java.awt.HeadlessException;
 import java.awt.event.KeyEvent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import org.bson.Document;
+import ec.edu.espe.deinglogin.utils.ValidationUtil;
+import java.awt.HeadlessException;
+import java.awt.event.KeyEvent;
+import java.beans.Statement;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.ResultSet;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 
 /**
  *
- * 
+ *
  */
 public class LoginGUI extends javax.swing.JFrame {
 
@@ -49,10 +61,11 @@ public class LoginGUI extends javax.swing.JFrame {
         btnExitProgram = new javax.swing.JButton();
         btnSignIn = new javax.swing.JButton();
         btnEnter = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        txUser.setText("Usuario:");
+        txUser.setText("USUARIO:");
 
         txtUser.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         txtUser.addActionListener(new java.awt.event.ActionListener() {
@@ -66,7 +79,7 @@ public class LoginGUI extends javax.swing.JFrame {
             }
         });
 
-        txPassword.setText("Contraseña:");
+        txPassword.setText("CONTRASEÑA:");
 
         txtPassword.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         txtPassword.addActionListener(new java.awt.event.ActionListener() {
@@ -85,14 +98,18 @@ public class LoginGUI extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(132, 132, 132)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txUser, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(txPassword, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(69, 69, 69)
+                        .addComponent(txUser)
+                        .addGap(32, 32, 32))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(txPassword)
+                        .addGap(18, 18, 18)))
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 168, Short.MAX_VALUE)
-                    .addComponent(txtUser))
+                    .addComponent(txtPassword)
+                    .addComponent(txtUser, javax.swing.GroupLayout.PREFERRED_SIZE, 168, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -109,24 +126,25 @@ public class LoginGUI extends javax.swing.JFrame {
                 .addContainerGap(25, Short.MAX_VALUE))
         );
 
+        nameOfProyect.setFont(new java.awt.Font("Swis721 BlkEx BT", 0, 18)); // NOI18N
         nameOfProyect.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        nameOfProyect.setText(" Panes De La Ruminahui");
+        nameOfProyect.setText("PANES DE LA RUMIÑAHUI");
 
-        btnExitProgram.setText("Salir");
+        btnExitProgram.setText("SALIR");
         btnExitProgram.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnExitProgramActionPerformed(evt);
             }
         });
 
-        btnSignIn.setText("Registrar");
+        btnSignIn.setText("REGISTRAR");
         btnSignIn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSignInActionPerformed(evt);
             }
         });
 
-        btnEnter.setText("Entrar");
+        btnEnter.setText("ENTRAR");
         btnEnter.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEnterActionPerformed(evt);
@@ -142,14 +160,14 @@ public class LoginGUI extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap(105, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addGap(43, 43, 43)
                 .addComponent(btnExitProgram)
-                .addGap(84, 84, 84)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 68, Short.MAX_VALUE)
                 .addComponent(btnSignIn)
                 .addGap(85, 85, 85)
                 .addComponent(btnEnter)
-                .addGap(75, 75, 75))
+                .addGap(16, 16, 16))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -162,47 +180,70 @@ public class LoginGUI extends javax.swing.JFrame {
                 .addGap(14, 14, 14))
         );
 
+        jPanel3.setBackground(new java.awt.Color(245, 200, 100));
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 169, Short.MAX_VALUE)
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(nameOfProyect, javax.swing.GroupLayout.DEFAULT_SIZE, 570, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(47, 47, 47)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(nameOfProyect, javax.swing.GroupLayout.PREFERRED_SIZE, 354, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 32, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(12, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(22, 22, 22)
                 .addComponent(nameOfProyect, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(50, 50, 50)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 104, Short.MAX_VALUE)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(14, 14, 14))
+                .addGap(45, 45, 45))
+            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     public void createDocument() {
+        SQLiteDataConnect sqliteDataConnect = new SQLiteDataConnect();
+        Connection connection = sqliteDataConnect.connectr();
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("login");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+        String username = txtUser.getText();
+        String password = txtPassword.getText();
 
-        String user = txtUser.getText();
-        String pasword = txtPassword.getText();
+        String sql = "INSERT INTO Users (username, password) VALUES (?, ?)";
 
-        String encrypted = Encrypted.encryptPassword(pasword);
-
-        Document doc1 = new Document("User", user).append("Pasword", encrypted);
-
-        collection.insertOne(doc1);
-
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(rootPane, "Registrado con éxito");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(rootPane, "Error al registrar el usuario: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            sqliteDataConnect.closeConnection();
+        }
     }
 
     private void emptyFiled() {
@@ -253,7 +294,6 @@ public class LoginGUI extends javax.swing.JFrame {
 
     private void btnEnterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnterActionPerformed
         enterAction();
-        //this.setVisible(false);
     }//GEN-LAST:event_btnEnterActionPerformed
 
     private void btnSignInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSignInActionPerformed
@@ -309,7 +349,7 @@ public class LoginGUI extends javax.swing.JFrame {
             enterAction();
         }
     }//GEN-LAST:event_btnEnterKeyPressed
-/*Hacer la validacion para que al ingresar Contraseña-Usuario incorrecto no salga 
+    /*Hacer la validacion para que al ingresar Contraseña-Usuario incorrecto no salga 
     el mensaje de: seleccionar el tipo de usuario*/
     private void enterAction() {
         String username = txtUser.getText();
@@ -320,17 +360,27 @@ public class LoginGUI extends javax.swing.JFrame {
             return;
         }
 
-        Manager mongoConnect = new Manager();
+        SQLiteDataConnect sqliteDataConnect = new SQLiteDataConnect();
+        Connection connection = sqliteDataConnect.connectr();
 
-        if (mongoConnect.loginConnect(username, password)==true) {
-            txtUser.setText("");
-            txtPassword.setText("");
-            
-        }else{
-        String userType = showUserTypeDialog();
-        if (userType != null) {
-        }}
-        
+        try {
+            String sql = "SELECT * FROM Users WHERE username = ? AND password = ?";
+            PreparedStatement pstmt = connection.prepareStatement(sql);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            ResultSet rs = pstmt.executeQuery();
+            if (!rs.next()) {
+                txtUser.setText("");
+                txtPassword.setText("");
+                JOptionPane.showMessageDialog(this, "Usuario/Contraseña incorrecto\nIngrese nuevamente");
+            } else {
+                showUserTypeDialog();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al autenticar usuario: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            sqliteDataConnect.closeConnection(connection);
+        }
     }
 
     private UserAndPassword readData() {
@@ -412,6 +462,7 @@ public class LoginGUI extends javax.swing.JFrame {
     private javax.swing.JButton btnSignIn;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JLabel nameOfProyect;
     private javax.swing.JLabel txPassword;
     private javax.swing.JLabel txUser;

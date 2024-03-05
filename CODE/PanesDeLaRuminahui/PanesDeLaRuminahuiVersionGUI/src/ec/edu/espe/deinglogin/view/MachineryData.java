@@ -1,11 +1,17 @@
 package ec.edu.espe.deinglogin.view;
 
 import com.mongodb.client.MongoCollection;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import ec.edu.espe.deinglogin.utils.ValidationUtil;
 import java.awt.HeadlessException;
 import javax.swing.JOptionPane;
 import org.bson.Document;
+import java.awt.HeadlessException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -14,7 +20,7 @@ import org.bson.Document;
 public class MachineryData extends javax.swing.JFrame {
 
     MachineryGUI machineryGUI;
-
+    
     public void setMachinaryGUI(MachineryGUI machineryGUI) {
         this.machineryGUI = machineryGUI;
     }
@@ -212,22 +218,34 @@ public class MachineryData extends javax.swing.JFrame {
             String name = txtName.getText();
             String use = txtUse.getText();
             String warranty = txtWarranty.getText();
-            MongoDataConnect mongoDataConnect = new MongoDataConnect("machinery");
-            MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-            Document doc = new Document("Id", id)
-                    .append("Name", name)
-                    .append("Use", use)
-                    .append("Warranty", warranty);
-
-            collection.insertOne(doc);
-            int option = JOptionPane.showConfirmDialog(this, "Guardar");
-
-            if (option == 0) {
-                JOptionPane.showMessageDialog(rootPane, "Registrado con exito");
-                emptyFiled();
-                machineryGUI.loadMachinaryData();
-            }
+            
+            SQLiteDataConnect sqliteDataConnect = new SQLiteDataConnect();
+            Connection connection = sqliteDataConnect.connectr();
+            
+            try {
+                // Preparar la sentencia SQL para insertar datos
+                String sql = "INSERT INTO machinery (id, name, use, warranty) VALUES (?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(sql);
+                statement.setInt(1, id);
+                statement.setString(2, name);
+                statement.setString(3, use);
+                statement.setString(4, warranty);
+                
+                // Ejecutar la sentencia SQL
+                statement.executeUpdate();
+                
+                int option = JOptionPane.showConfirmDialog(this, "Guardar");
+                if (option == 0) {
+                    JOptionPane.showMessageDialog(rootPane, "Registrado con éxito");
+                    emptyFiled();
+                    machineryGUI.loadMachinaryData();
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(null, "Error al insertar datos en la base de datos");
+                e.printStackTrace();
+            } finally {
+            sqliteDataConnect.closeConnection(connection);
+        }
         }
 
     }

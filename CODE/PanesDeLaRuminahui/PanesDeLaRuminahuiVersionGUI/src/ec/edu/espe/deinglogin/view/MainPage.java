@@ -12,13 +12,22 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import ec.edu.espe.deinglogin.utils.Manager;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import javax.swing.JOptionPane;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import java.util.*;
 import ec.edu.espe.deinglogin.utils.ValidationUtil;
 import java.awt.HeadlessException;
+//import java.beans.Statement;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
+import ec.edu.espe.deinglogin.model.Product;
+import java.sql.Statement;
 
 
 /**
@@ -47,73 +56,115 @@ public class MainPage extends javax.swing.JFrame {
         txtId.setEditable(false);
 
     }
-    
+
     public void loadRawMaterialData() {
-    DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
 
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
+        try {
+            // Conectar a la base de datos SQLite
+            Connection connection = SQLiteDataConnect.getConnection();
 
-    FindIterable<Document> iterable = collection.find();
-     for (Document document : iterable) {
-        String id = document.getString("Id");
-        String nombre = document.getString("Name");
+            // Crear la consulta SQL para obtener los datos necesarios
+            String query = "SELECT Id, Name FROM inventory";
 
-        // Agregar el ID y el Nombre al modelo del JComboBox
-        model.addElement(nombre);
+            // Ejecutar la consulta
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            // Iterar sobre los resultados y agregar los nombres al modelo del JComboBox
+            while (resultSet.next()) {
+                String id = resultSet.getString("Id");
+                String nombre = resultSet.getString("Name");
+                model.addElement(nombre);
+            }
+
+            // Establecer el modelo del JComboBox
+            comboBoxRawMaterial.setModel(model);
+
+            // Cerrar la conexión y liberar recursos
+            resultSet.close();
+            statement.close();
+            connection.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
-
-    // Establecer el modelo del JComboBox
-    comboBoxRawMaterial.setModel(model);
-
-    // Agregar un listener si es necesario
-    comboBoxRawMaterial.addActionListener(e -> {
-        // Acciones al seleccionar un elemento del JComboBox
-        // Puedes obtener el elemento seleccionado con comboBoxRawMaterial.getSelectedItem()
-        String selectedName = (String) comboBoxRawMaterial.getSelectedItem();
-
-        // Buscar el ID correspondiente en la base de datos
-        String correspondingId = getCorrespondingId(selectedName);
-        
-        // Mostrar el ID en el txtId
-        txtId.setText(correspondingId);
-    });
-}
 
     private String getCorrespondingId(String selectedName) {
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
+    String correspondingId = "";
 
-    Document document = collection.find(Filters.eq("Name", selectedName)).first();
-    
-    if (document != null) {
-        return document.getString("Id");
-    } else {
-        return "";
+    try {
+        // Conectar a la base de datos SQLite
+        Connection connection = SQLiteDataConnect.getConnection();
+
+        // Crear la consulta SQL para obtener el ID correspondiente al nombre seleccionado
+        String query = "SELECT Id FROM rawMaterial WHERE Name = ?";
+
+        // Preparar la consulta
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setString(1, selectedName);
+
+        // Ejecutar la consulta
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        // Verificar si se encontró un resultado y obtener el ID correspondiente
+        if (resultSet.next()) {
+            correspondingId = resultSet.getString("Id");
+        }
+
+        // Cerrar la conexión y liberar recursos
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
-}
-    
-    public void loadInventoryGUI() {
 
+    return correspondingId;
+}
+
+    public void loadInventoryGUI() {
+    try {
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("Id");
         model.addColumn("Producto");
         model.addColumn("Cantidad");
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+        // Conectar a la base de datos SQLite
+        Connection connection = SQLiteDataConnect.getConnection();
 
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            String id = document.getString("Id");
-            String nombre = document.getString("Name");
-            int cantidad = document.getInteger("Ammount");
+        // Crear la consulta SQL para obtener los datos del inventario
+        String query = "SELECT Id, Name, Amount FROM rawMaterial";
+
+        // Preparar la consulta
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        // Ejecutar la consulta
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        // Iterar sobre los resultados y agregarlos al modelo de la tabla
+        while (resultSet.next()) {
+            String id = resultSet.getString("Id");
+            String nombre = resultSet.getString("Name");
+            int cantidad = resultSet.getInt("Amount");
 
             model.addRow(new Object[]{id, nombre, cantidad});
         }
+
+        // Asignar el modelo de la tabla
         tbInventory.setModel(model);
 
+        // Cerrar la conexión y liberar recursos
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -525,7 +576,7 @@ public class MainPage extends javax.swing.JFrame {
 
                 String id = txtId.getText();
                 validateProduct(id);
-                
+
             } else {
                 JOptionPane.showMessageDialog(null, "Ingrese un un numero positivo para el Id");
                 txtId.setText("");
@@ -536,24 +587,39 @@ public class MainPage extends javax.swing.JFrame {
     }//GEN-LAST:event_txtIdKeyPressed
 
     private void validateProduct(String id) {
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+    try {
+        // Conectar a la base de datos SQLite
+        Connection connection = SQLiteDataConnect.getConnection();
 
-        Bson usernameFilter = Filters.eq("Id", id);
-        Document productDocument = collection.find(usernameFilter).first();
+        // Crear la consulta SQL para obtener los detalles del producto con el ID dado
+        String query = "SELECT * FROM rawMaterial WHERE Id = ?";
 
-        if (productDocument != null) {
-            String nameProduct = productDocument.getString("Name");
-            float budgetProduct = productDocument.getDouble("Price").floatValue();
-            System.out.println(budgetProduct);
-            int stock = productDocument.getInteger("Ammount");
-            System.out.println(stock);
+        // Preparar la consulta
+        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        preparedStatement.setString(1, id);
+
+        // Ejecutar la consulta
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        // Verificar si se encontró el producto y obtener sus detalles
+        if (resultSet.next()) {
+            String nameProduct = resultSet.getString("Name");
+            float budgetProduct = resultSet.getFloat("Price");
+            int stock = resultSet.getInt("Amount");
             product = new Product(id, nameProduct, budgetProduct, stock);
         } else {
             JOptionPane.showMessageDialog(null, "Producto no encontrado ");
         }
 
+        // Cerrar la conexión y liberar recursos
+        resultSet.close();
+        preparedStatement.close();
+        connection.close();
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+}
 
     private void btnAddProductActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddProductActionPerformed
         addProductAction();
@@ -561,53 +627,52 @@ public class MainPage extends javax.swing.JFrame {
 
     private void addProductAction() throws NumberFormatException, HeadlessException {
 
-    ValidationUtil validationUtil = new ValidationUtil();
+        ValidationUtil validationUtil = new ValidationUtil();
 
-    boolean validate = true;
-    int amount = 0;
-    float totalPrice = 0;
-    float priceIVA = 0;
+        boolean validate = true;
+        int amount = 0;
+        float totalPrice = 0;
+        float priceIVA = 0;
 
-    if (validationUtil.validateBarcode(txtId.getText())) {
-        btnAddProduct.requestFocus();
-        String id = txtId.getText();
-        validateProduct(id);
-        txtAmount.requestFocus();
+        if (validationUtil.validateBarcode(txtId.getText())) {
+            btnAddProduct.requestFocus();
+            String id = txtId.getText();
+            validateProduct(id);
+            txtAmount.requestFocus();
 
-        if (validationUtil.validateInt(txtAmount.getText())) {
+            if (validationUtil.validateInt(txtAmount.getText())) {
 
-            amount = Integer.parseInt(txtAmount.getText());
+                amount = Integer.parseInt(txtAmount.getText());
 
-            // Validar que la cantidad no supere la existente
-            if (amount > product.getStock()) {
-                JOptionPane.showMessageDialog(null, "La cantidad ingresada supera la cantidad existente del producto.");
-                validate = false;
+                // Validar que la cantidad no supere la existente
+                if (amount > product.getStock()) {
+                    JOptionPane.showMessageDialog(null, "La cantidad ingresada supera la cantidad existente del producto.");
+                    validate = false;
+                } else {
+                    // txtFullValue.setText(String.valueOf(product.getBudgetProduct() * amount));
+                    totalPrice = product.getBudgetProduct() * amount;
+                    priceIVA = totalPrice * iva + totalPrice;
+                }
             } else {
-               // txtFullValue.setText(String.valueOf(product.getBudgetProduct() * amount));
-                totalPrice = product.getBudgetProduct() * amount;
-                priceIVA = totalPrice * iva + totalPrice;
+                JOptionPane.showMessageDialog(null, "Ingrese un número positivo para la Cantidad");
+                validate = false;
+                txtAmount.setText("");
+                txtAmount.requestFocus();
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Ingrese un número positivo para la Cantidad");
+            JOptionPane.showMessageDialog(null, "Ingrese un número positivo para el Id");
+            txtId.setText("");
+            txtId.requestFocus();
             validate = false;
-            txtAmount.setText("");
-            txtAmount.requestFocus();
         }
-    } else {
-        JOptionPane.showMessageDialog(null, "Ingrese un número positivo para el Id");
-        txtId.setText("");
-        txtId.requestFocus();
-        validate = false;
-    }
 
-    if (validate) {
-        sale = new Sale(product.getId(), product.getNameProduct(), amount, product.getBudgetProduct(), totalPrice);
-        saleList.add(sale);
-        addProductToList();
-        initPanelProduct();
+        if (validate) {
+            sale = new Sale(product.getId(), product.getNameProduct(), amount, product.getBudgetProduct(), totalPrice);
+            saleList.add(sale);
+            addProductToList();
+            initPanelProduct();
+        }
     }
-}
-
 
     private void btnNewSaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNewSaleActionPerformed
         DefaultTableModel newModel = new DefaultTableModel();
@@ -651,7 +716,8 @@ public class MainPage extends javax.swing.JFrame {
         loginGUI.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
-private String showUserTypeDialog() {
+    
+    private String showUserTypeDialog() {
         String[] options = {"Administrador", "Control de existencias"};
         int choice = JOptionPane.showOptionDialog(
                 this,
@@ -681,8 +747,10 @@ private String showUserTypeDialog() {
             return selectedOption;
         }
     }
+    
     private void itmAddRawMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_itmAddRawMaterialActionPerformed
-        showUserTypeDialog();
+        InventoryGUI inventoryGUI = new InventoryGUI();
+        inventoryGUI.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_itmAddRawMaterialActionPerformed
 
@@ -697,7 +765,7 @@ private String showUserTypeDialog() {
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void mniHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniHelpActionPerformed
-        JOptionPane.showMessageDialog(rootPane, "Por faovr contactese al siguiente numero: 0987654321");
+        JOptionPane.showMessageDialog(rootPane, "Por faovr contactese con el tecnico");
     }//GEN-LAST:event_mniHelpActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
@@ -714,6 +782,8 @@ private String showUserTypeDialog() {
 
     private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
         RawMaterialGUI rawMaterialGUI = new RawMaterialGUI();
+                System.out.print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
         rawMaterialGUI.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_jMenuItem5ActionPerformed

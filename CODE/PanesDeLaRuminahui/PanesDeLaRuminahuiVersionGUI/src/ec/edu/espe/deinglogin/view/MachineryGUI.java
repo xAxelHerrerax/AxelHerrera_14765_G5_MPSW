@@ -3,12 +3,18 @@ package ec.edu.espe.deinglogin.view;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
+import org.bson.Document;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-import org.bson.Document;
+
 
 /**
  *
@@ -16,14 +22,25 @@ import org.bson.Document;
  */
 public class MachineryGUI extends javax.swing.JFrame {
 
+    private Connection connection;
     /**
      * Creates new form MachineryGUI
      */
     public MachineryGUI() {
         initComponents();
+        connectToSQLite();
         loadMachinaryData();
     }
 
+    private void connectToSQLite() {
+        try {
+            String url = "jdbc:sqlite:D:/DIEGO/Documents/SOFTWARE/MOD DESARROLLO SOFTWARE/u2/proyecto/PanesDeLaRuminahuiVersionGUI3/PanesDeLaRuminahuiVersionGUI/database/database.db";
+            connection = DriverManager.getConnection(url);
+            System.out.println("Conexión a SQLite establecida.");
+        } catch (SQLException e) {
+            System.out.println("Error al conectar a la base de datos SQLite: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -146,42 +163,42 @@ public class MachineryGUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     public void loadMachinaryData() {
-
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("ID");
         model.addColumn("Nombre");
         model.addColumn("Uso");
         model.addColumn("Garantia");
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("machinery");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM machinery");
+            ResultSet resultSet = statement.executeQuery();
 
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            int id = document.getInteger("Id");
-            String nombre = document.getString("Name");
-            String uso = document.getString("Use");
-            String garantia = document.getString("Warranty");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String nombre = resultSet.getString("name");
+                String uso = resultSet.getString("use");
+                String garantia = resultSet.getString("warranty");
 
-            model.addRow(new Object[]{id, nombre, uso, garantia});
-        }
+                model.addRow(new Object[]{id, nombre, uso, garantia});
+            }
 
-        tbMachinery.setModel(model);
+            tbMachinery.setModel(model);
 
-        tbMachinery.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent event) {
-                if (!event.getValueIsAdjusting()) {
-                    int selectedRow = tbMachinery.getSelectedRow();
-                    if (selectedRow != -1) {
-
-                        btnDelete.setEnabled(true);
-                    } else {
-
-                        btnDelete.setEnabled(false);
+            tbMachinery.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+                public void valueChanged(ListSelectionEvent event) {
+                    if (!event.getValueIsAdjusting()) {
+                        int selectedRow = tbMachinery.getSelectedRow();
+                        if (selectedRow != -1) {
+                            btnDelete.setEnabled(true);
+                        } else {
+                            btnDelete.setEnabled(false);
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (SQLException e) {
+            System.out.println("Error al cargar datos desde la base de datos SQLite: " + e.getMessage());
+        }
     }
 
     private void btnReturnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReturnActionPerformed
@@ -204,20 +221,18 @@ public class MachineryGUI extends javax.swing.JFrame {
         if (selectedRow != -1) {
             int confirm = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas eliminar este dato?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-
                 int id = (int) tbMachinery.getValueAt(selectedRow, 0);
-
-                MongoDataConnect mongoDataConnect = new MongoDataConnect("machinery");
-                MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-                collection.deleteOne(Filters.eq("Id", id));
-
-                loadMachinaryData();
-
-                JOptionPane.showMessageDialog(this, "Dato eliminado correctamente");
+                try {
+                    PreparedStatement statement = connection.prepareStatement("DELETE FROM machinery WHERE id = ?");
+                    statement.setInt(1, id);
+                    statement.executeUpdate();
+                    loadMachinaryData();
+                    JOptionPane.showMessageDialog(this, "Dato eliminado correctamente");
+                } catch (SQLException e) {
+                    System.out.println("Error al eliminar dato desde la base de datos SQLite: " + e.getMessage());
+                }
             }
         }
-
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     /**

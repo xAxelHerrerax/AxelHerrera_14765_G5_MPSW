@@ -3,13 +3,21 @@ package ec.edu.espe.deinglogin.view;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
+import ec.edu.espe.deinglogin.utils.SQLiteDataConnect;
 import java.awt.HeadlessException;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.bson.Document;
+import java.awt.HeadlessException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -20,68 +28,53 @@ public class InventoryGUI extends javax.swing.JFrame {
     /*private JTable tbInventory;
     
      */
+    private final String url = "jdbc:sqlite:D:/U, dolor de cabeza/QUINTO SEMESTRE/Modelos de procesos/PanesDeLaRuminahuiVersionGUI (2)/PanesDeLaRuminahuiVersionGUI/database/database.db";
     public InventoryGUI() {
         initComponents();
         loadInventoryData();
     }
 
     public void loadInventoryData() {
-
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("ID");
         model.addColumn("Nombre");
         model.addColumn("Cantidad");
         model.addColumn("Precio");
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("inventory");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM inventory");
+             ResultSet rs = pstmt.executeQuery()) {
 
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            int id = document.getInteger("Id");
-            String nombre = document.getString("Name");
-            int cantidad = document.getInteger("Ammount");
-            float precio = document.getDouble("Price").floatValue();
+            while (rs.next()) {
+                int id = rs.getInt("Id");
+                String nombre = rs.getString("Name");
+                int cantidad = rs.getInt("Ammount");
+                float precio = rs.getFloat("Price");
 
-            model.addRow(new Object[]{id, nombre, cantidad, precio});
-        }
-
-        tbInventory.setModel(model);
-
-        tbInventory.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-            public void valueChanged(ListSelectionEvent event) {
-                if (!event.getValueIsAdjusting()) {
-                    int selectedRow = tbInventory.getSelectedRow();
-                    if (selectedRow != -1) {
-
-                        btnDelete.setEnabled(true);
-                    } else {
-
-                        btnDelete.setEnabled(false);
-                    }
-                }
+                model.addRow(new Object[]{id, nombre, cantidad, precio});
             }
+            tbInventory.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error al cargar los datos del inventario: " + e.getMessage());
         }
-        );
     }
+    
     public void loadRawMaterialData() {
+    DefaultTableModel model = new DefaultTableModel();
+    model.addColumn("ID");
+    model.addColumn("Nombre");
+    model.addColumn("Cantidad");
+    model.addColumn("Precio");
 
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("ID");
-        model.addColumn("Nombre");
-        model.addColumn("Cantidad");
-        model.addColumn("Precio");
+    try (Connection conn = DriverManager.getConnection(url);
+         PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM rawMaterial");
+         ResultSet rs = pstmt.executeQuery()) {
 
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-        FindIterable<Document> iterable = collection.find();
-        for (Document document : iterable) {
-            String id = document.getString("Id");
-            String nombre = document.getString("Name");
-            int cantidad = document.getInteger("Ammount");
-            float precio = document.getDouble("Price").floatValue();
+        while (rs.next()) {
+            String id = rs.getString("Id");
+            String nombre = rs.getString("Name");
+            int cantidad = rs.getInt("Ammount");
+            float precio = rs.getFloat("Price");
 
             model.addRow(new Object[]{id, nombre, cantidad, precio});
         }
@@ -89,21 +82,22 @@ public class InventoryGUI extends javax.swing.JFrame {
         tbInventory.setModel(model);
 
         tbInventory.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
             public void valueChanged(ListSelectionEvent event) {
                 if (!event.getValueIsAdjusting()) {
                     int selectedRow = tbInventory.getSelectedRow();
                     if (selectedRow != -1) {
-
                         btnDelete.setEnabled(true);
                     } else {
-
                         btnDelete.setEnabled(false);
                     }
                 }
             }
         });
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(null, "Error al cargar los datos de la materia prima: " + e.getMessage());
     }
+}
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -251,31 +245,30 @@ public class InventoryGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-            // Obtener el índice de la fila seleccionada en la tabla
+        // Obtener el índice de la fila seleccionada en la tabla
     int selectedRow = tbInventory.getSelectedRow();
-    
+
     // Verificar si se seleccionó una fila válida
     if (selectedRow == -1) {
         JOptionPane.showMessageDialog(this, "Selecciona una fila para editar.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
-    
+
     // Obtener el ID del objeto en la fila seleccionada
     String id = (String) tbInventory.getValueAt(selectedRow, 0); // Suponiendo que el ID está en la primera columna
-    
+
     // Obtener la cantidad actual
     int cantidadActual = (int) tbInventory.getValueAt(selectedRow, 2); // Suponiendo que la cantidad está en la tercera columna
-    
+
     // Permitir al usuario editar la cantidad
     String nuevaCantidadStr = JOptionPane.showInputDialog(this, "Editar Cantidad:", cantidadActual);
-    
+
     // Verificar si el usuario canceló la edición o no ingresó un nuevo valor
     if (nuevaCantidadStr == null || nuevaCantidadStr.isEmpty()) {
         JOptionPane.showMessageDialog(this, "Se canceló la edición o la cantidad está vacía.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
         return;
     }
-    
+
     // Convertir la nueva cantidad a entero
     int nuevaCantidad;
     try {
@@ -284,20 +277,20 @@ public class InventoryGUI extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "Cantidad no válida.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
-    
+
     // Actualizar los datos en la base de datos
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
-    
-    // Crear un documento con los nuevos valores
-    Document filter = new Document("Id", id);
-    Document update = new Document("$set", new Document("Ammount", nuevaCantidad));
-    
-    // Actualizar el documento en la colección
-    collection.updateOne(filter, update);
-    
-    // Actualizar la tabla con los nuevos datos
-    loadRawMaterialData();
+    try (Connection conn = DriverManager.getConnection(url);
+         PreparedStatement pstmt = conn.prepareStatement("UPDATE rawMaterial SET Ammount = ? WHERE Id = ?")) {
+
+        pstmt.setInt(1, nuevaCantidad);
+        pstmt.setString(2, id);
+        pstmt.executeUpdate();
+
+        // Actualizar la tabla con los nuevos datos
+        loadRawMaterialData();
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Error al actualizar la cantidad: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void Delete() throws HeadlessException {
@@ -305,17 +298,17 @@ public class InventoryGUI extends javax.swing.JFrame {
         if (selectedRow != -1) {
             int confirm = JOptionPane.showConfirmDialog(this, "¿Estás seguro de que deseas eliminar este dato?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-
                 int id = (int) tbInventory.getValueAt(selectedRow, 0);
 
-                MongoDataConnect mongoDataConnect = new MongoDataConnect("inventory");
-                MongoCollection<Document> collection = mongoDataConnect.getCollection();
-
-                collection.deleteOne(Filters.eq("Id", id));
-
-                loadInventoryData();
-
-                JOptionPane.showMessageDialog(this, "Dato eliminado correctamente");
+                try (Connection conn = DriverManager.getConnection(url);
+                     PreparedStatement pstmt = conn.prepareStatement("DELETE FROM inventory WHERE Id = ?")) {
+                    pstmt.setInt(1, id);
+                    pstmt.executeUpdate();
+                    loadInventoryData();
+                    JOptionPane.showMessageDialog(this, "Dato eliminado correctamente");
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(null, "Error al eliminar el dato del inventario: " + e.getMessage());
+                }
             }
         }
     }

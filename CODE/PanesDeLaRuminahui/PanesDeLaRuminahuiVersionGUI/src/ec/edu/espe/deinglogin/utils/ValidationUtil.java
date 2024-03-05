@@ -1,24 +1,28 @@
 package ec.edu.espe.deinglogin.utils;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
+
 import java.util.regex.*;
-import org.bson.Document;
-/**
- *
- *
- * @author Calvache Gabriel, Techware, DCCO-ESPE
- */
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 public class ValidationUtil {
-    
-public boolean validateIdNotExist(String input) {
-    MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-    MongoCollection<Document> collection = mongoDataConnect.getCollection();
 
-    // Verificar si ya existe un documento con el mismo ID
-    Document existingDoc = collection.find(Filters.eq("Id", input)).first();
+    public boolean validateIdNotExist(String input) {
+        boolean idNotExist = false;
+        try (Connection conn = SQLiteDataConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM rawMaterial WHERE Id = ?")) {
 
-    return existingDoc == null;
-}
+            pstmt.setString(1, input);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                idNotExist = !rs.next(); // Si no hay resultados, el ID no existe
+            }
+        } catch (SQLException e) {
+            System.err.println("Error validating ID: " + e.getMessage());
+        }
+        return idNotExist;
+    }
+
     public boolean validateBarcode(String input) {
         // Expresión regular para verificar que el código de barras tenga exactamente 12 dígitos numéricos
         String regex = "\\d{12}";
@@ -31,6 +35,7 @@ public boolean validateIdNotExist(String input) {
 
         return matcher.matches();
     }
+
     public boolean validateInt(String input) {
         try {
             int value = Integer.parseInt(input);

@@ -1,56 +1,52 @@
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import ec.edu.espe.deinglogin.utils.MongoDataConnect;
-import org.bson.Document;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.table.DefaultTableModel;
 
 public class ProductManager {
 
-    // Otros métodos del administrador de productos aquí...
+    private static final String DB_URL = "jdbc:sqlite:D:/DIEGO/Documents/SOFTWARE/MOD DESARROLLO SOFTWARE/u2/proyecto/PanesDeLaRuminahuiVersionGUI3/PanesDeLaRuminahuiVersionGUI/database/database.db";
 
-    // Método para obtener una lista de productos con cantidad igual a cero
     public List<Product> getProductsOutOfStock() {
         List<Product> productsOutOfStock = new ArrayList<>();
+        String query = "SELECT * FROM Product WHERE Amount = 0";
 
-        // Reemplaza "inventory" con el nombre real de tu colección en la base de datos
-        MongoDataConnect mongoDataConnect = new MongoDataConnect("rawMaterial");
-        MongoCollection<Document> collection = mongoDataConnect.getCollection();
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
 
-        FindIterable<Document> iterable = collection.find();
+            while (rs.next()) {
+                String productId = rs.getString("Id");
+                String productName = rs.getString("Name");
+                int amount = rs.getInt("Amount");
 
-        for (Document document : iterable) {
-            String productId = document.getString("Id");
-            String productName = document.getString("Name");
-            int amount = document.getInteger("Amount", 0); // Se asume que la cantidad es un entero
-
-            // Verificar si la cantidad es igual a cero
-            if (amount == 0) {
                 Product product = new Product(productId, productName, amount);
                 productsOutOfStock.add(product);
             }
+        } catch (SQLException e) {
+            System.err.println("Error getting products out of stock: " + e.getMessage());
         }
 
         return productsOutOfStock;
     }
 
-    // Método para obtener una lista de productos con cantidad cero y presentarlos en una tabla
     public void presentProductsOutOfStockInTable(DefaultTableModel model) {
         List<Product> productsOutOfStock = getProductsOutOfStock();
 
-        // Limpiar el modelo de la tabla antes de agregar nuevos datos
         model.setRowCount(0);
 
-        // Agregar los productos con cero cantidades a la tabla
         for (Product product : productsOutOfStock) {
             model.addRow(new Object[]{product.getId(), product.getName(), product.getAmount()});
         }
     }
 
-    // Clase de ejemplo para representar un producto
+    // Resto de métodos del administrador de productos
+    // ...
+
     private static class Product {
         private String id;
         private String name;
@@ -62,7 +58,6 @@ public class ProductManager {
             this.amount = amount;
         }
 
-        // Métodos getter para acceder a los atributos
         public String getId() {
             return id;
         }
