@@ -149,6 +149,11 @@ public class MainPage extends javax.swing.JFrame {
         jLabel4.setText("Valor Total");
 
         txtAmount.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        txtAmount.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtAmountActionPerformed(evt);
+            }
+        });
         txtAmount.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 txtAmountKeyPressed(evt);
@@ -697,6 +702,10 @@ public class MainPage extends javax.swing.JFrame {
         frmBread.setVisible(true);
         this.setVisible(false);
     }//GEN-LAST:event_itmFrmBreadActionPerformed
+
+    private void txtAmountActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtAmountActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtAmountActionPerformed
 
     private void addProductToList() {
         float finalPrice = Float.parseFloat(txtFinalPrice.getText());

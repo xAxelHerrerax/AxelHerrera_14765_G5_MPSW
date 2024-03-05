@@ -84,6 +84,8 @@ public class RawMaterialGUI extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jPanel1.setBackground(new java.awt.Color(0, 153, 51));
+
         tbRawMaterial.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -123,6 +125,8 @@ public class RawMaterialGUI extends javax.swing.JFrame {
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 294, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(30, Short.MAX_VALUE))
         );
+
+        jPanel2.setBackground(new java.awt.Color(204, 204, 204));
 
         btnBack.setText("Regresar");
         btnBack.addActionListener(new java.awt.event.ActionListener() {
